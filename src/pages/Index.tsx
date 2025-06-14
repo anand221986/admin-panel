@@ -25,6 +25,7 @@ import {
 } from "recharts";
 import { useState } from "react";
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
+import AddClientModal from "@/components/modals/AddClientModal";
 
 const metricsData = [
   {
@@ -111,6 +112,7 @@ const recentActivities = [
 
 const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
 
   return (
     <Layout>
@@ -126,7 +128,7 @@ const Index = () => {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" className="bg-white/80">
+            <Button onClick={() => setIsClientModalOpen(true)} variant="outline" className="bg-white/80">
               <Building2 className="w-4 h-4 mr-2" />
               Add Client
             </Button>
@@ -140,6 +142,10 @@ const Index = () => {
           </div>
         </div>
 
+        <AddClientModal
+          open={isClientModalOpen}
+          onClose={() => setIsClientModalOpen(false)}
+        />
 
         {/* Post Job Modal */}
         <PostNewJobModal
