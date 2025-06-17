@@ -154,6 +154,7 @@ const Jobs = () => {
           </Button>
         </div>
 
+
         <PostNewJobModal
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
