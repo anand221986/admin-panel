@@ -43,6 +43,7 @@ import {
   getRecruiterStatusColor,
   getHMApprovalColor,
 } from "@/lib/candidate-config";
+import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -418,28 +419,32 @@ export default function CandidateViewList({
                       </TableCell>
                       {visibleColumns.includes("name") && (
                         <TableCell className="py-2 min-w-[150px]">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="w-8 h-8">
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs">
-                                {[
-                                  candidate.first_name[0],
-                                  candidate.last_name[0],
-                                ]
-                                  .filter(Boolean)
-                                  .join("")}
-                                {}
-                              </AvatarFallback>
-                            </Avatar>
-                            <button
-                              onClick={() => {
-                                setSelectedCandidate(candidate);
-                                setOpen(true);
-                              }}
-                              className="font-medium text-sm text-slate-600 whitespace-nowrap hover:underline focus:outline-none"
-                            >
-                              {candidate.first_name + " " + candidate.last_name}
-                            </button>
-                          </div>
+                          <CandidateActionsPopover candidateId={candidate.id}>
+                            <div className="flex items-center gap-2">
+                              <Avatar className="w-8 h-8">
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs">
+                                  {[
+                                    candidate.first_name[0],
+                                    candidate.last_name[0],
+                                  ]
+                                    .filter(Boolean)
+                                    .join("")}
+                                  {}
+                                </AvatarFallback>
+                              </Avatar>
+                              <button
+                                onClick={() => {
+                                  setSelectedCandidate(candidate);
+                                  setOpen(true);
+                                }}
+                                className="font-medium text-sm text-slate-600 whitespace-nowrap focus:outline-none"
+                              >
+                                {candidate.first_name +
+                                  " " +
+                                  candidate.last_name}
+                              </button>
+                            </div>
+                          </CandidateActionsPopover>
                           <CandidateProfileModal
                             open={isOpen}
                             onOpenChange={setOpen}
