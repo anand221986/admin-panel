@@ -34,21 +34,21 @@ const employmentTypes = [
   "Part-time",
   "Contract",
   "Internship",
-  "Temporary"
+  "Temporary",
 ];
 const experienceLevels = [
   "Entry level",
   "Mid level",
   "Senior level",
   "Director",
-  "Executive"
+  "Executive",
 ];
 const educationLevels = [
   "High School",
   "Associate",
   "Bachelor",
   "Master",
-  "Doctorate"
+  "Doctorate",
 ];
 
 export default function EditJobModal({
@@ -78,7 +78,7 @@ export default function EditJobModal({
     salary_to: "",
     salary_currency: "USD",
     company: "",
-    about_company: ""
+    about_company: "",
   };
 
   const [form, setForm] = useState({ ...initialFormState });
@@ -308,7 +308,6 @@ export default function EditJobModal({
 
           {/* Descriptions */}
           <div className="grid gap-4">
-            
             <label className="block text-sm font-medium mb">About</label>
             <Textarea
               name="description_about"
@@ -316,14 +315,16 @@ export default function EditJobModal({
               value={form.description_about}
               onChange={handleChange}
             />
-             <label className="block text-sm font-medium mb">Description Requirnment</label>
+            <label className="block text-sm font-medium mb">
+              Description Requirnment
+            </label>
             <Textarea
               name="description_requirements"
               placeholder="Requirements"
               value={form.description_requirements}
               onChange={handleChange}
             />
-             <label className="block text-sm font-medium mb">Benifits</label>
+            <label className="block text-sm font-medium mb">Benifits</label>
             <Textarea
               name="description_benefits"
               placeholder="Benefits"
@@ -331,24 +332,23 @@ export default function EditJobModal({
               onChange={handleChange}
             />
           </div>
-           <div className="mb-4">
-                          <label className="block text-sm font-medium mb">Company</label>
-                          <Input
-                            placeholder="Company Name"
-                            value={form.company}
-                            onChange={handleChange}
-                          />
-                        </div>
-                         <div className="block text-sm font-medium mb">
-                                      <label className="text-sm">About Company</label>
-                                      <Textarea
-                                        placeholder="Describe the Company"
-                                        rows={4}
-                                        value={form.about_company}
-                                        onChange={handleChange}
-                                      />
-                                     
-                                    </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb">Company</label>
+            <Input
+              placeholder="Company Name"
+              value={form.company}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="block text-sm font-medium mb">
+            <label className="text-sm">About Company</label>
+            <Textarea
+              placeholder="Describe the Company"
+              rows={4}
+              value={form.about_company}
+              onChange={handleChange}
+            />
+          </div>
 
           {/* Select Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -363,14 +363,15 @@ export default function EditJobModal({
                 onChange={handleChange}
               />
             </div> */}
-             
+
             <div>
-              <label className="block text-sm font-medium mb">Employment Type</label>
+              <label className="block text-sm font-medium mb">
+                Employment Type
+              </label>
               <select
                 className="w-full border rounded-md p-2 mt-1 text-sm"
                 value={form.employment_type}
                 onChange={handleChange}
-
               >
                 <option value="">Select Employment Type</option>
                 {employmentTypes.map((type) => (

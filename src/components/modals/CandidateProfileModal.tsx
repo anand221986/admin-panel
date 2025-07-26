@@ -28,12 +28,10 @@ export default function CandidateProfileModal({
           overflow-hidden
         "
       >
-        {/* Header */}
         <DialogHeader className="border-b px-4 py-4 bg-gray-100">
           <DialogTitle>Candidate Profile</DialogTitle>
         </DialogHeader>
 
-        {/* Scrollable Content */}
         <div
           className="
             flex-1 

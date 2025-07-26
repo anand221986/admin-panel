@@ -155,7 +155,6 @@ export function BulkUpdateFieldsModal({
         <div className="mt-1 space-y-4">
           {updates.map((u, i) => (
             <div key={i} className="flex gap-2">
-              {/* Field selector */}
               <Select
                 value={u.field}
                 onValueChange={(field) =>
@@ -176,7 +175,6 @@ export function BulkUpdateFieldsModal({
                 </SelectContent>
               </Select>
 
-              {/* Action selector */}
               <Select
                 value={u.action}
                 onValueChange={(action) =>
@@ -194,7 +192,6 @@ export function BulkUpdateFieldsModal({
                 </SelectContent>
               </Select>
 
-              {/* Value input or dropdown based on field */}
               {u.action === "change_to" && dropdownOptions[u.field] ? (
                 <Select
                   value={u.value}
@@ -230,7 +227,6 @@ export function BulkUpdateFieldsModal({
                 />
               )}
 
-              {/* Delete row */}
               <Button
                 onClick={() => deleteRow(i)}
                 disabled={updates.length === 1}

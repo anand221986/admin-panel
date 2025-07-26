@@ -1,16 +1,11 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import CandidateNotesPanel from "./CandidateNotesPanel";
 import CallLogPanel from "./CallLogPanel";
 

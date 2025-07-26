@@ -58,7 +58,6 @@ export default function JobProfileCard({ job }) {
   return (
     <div className="w-full p-3">
       <Card className="shadow-sm rounded-2xl overflow-hidden">
-        {/* Header */}
         <div className="bg-gradient-to-r from-blue-800 to-blue-600 p-4">
           <div className="flex justify-between items-start">
             <div>
@@ -91,7 +90,6 @@ export default function JobProfileCard({ job }) {
         </div>
 
         <CardContent className="p-4 space-y-4">
-          {/* Overview Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-gray-700">
             {[
               { icon: Tag, label: "Code", value: job_code },
@@ -127,7 +125,6 @@ export default function JobProfileCard({ job }) {
             ))}
           </div>
 
-          {/* Description Sections */}
           <div className="space-y-2">
             {[
               { key: "about", title: "About", content: description_about },
@@ -165,7 +162,6 @@ export default function JobProfileCard({ job }) {
             ))}
           </div>
 
-          {/* Keywords */}
           {keywords.length > 0 && (
             <div>
               <h3 className="text-sm font-medium text-gray-800 mb-1">
@@ -183,19 +179,6 @@ export default function JobProfileCard({ job }) {
               </div>
             </div>
           )}
-
-          {/* Actions */}
-          {/* <div className="flex flex-col sm:flex-row gap-1 mt-2">
-            <Button className="flex-1 text-xs bg-blue-600 text-white hover:bg-blue-700 py-1">
-              Apply Now
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 text-xs border-blue-600 text-blue-600 hover:bg-blue-50 py-1"
-            >
-              Share
-            </Button>
-          </div> */}
         </CardContent>
       </Card>
 

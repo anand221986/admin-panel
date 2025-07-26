@@ -1,5 +1,4 @@
-// CandidateDetailsTabs.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NotesPanel } from "./panels/NotesPanel";
 import { TasksPanel } from "./panels/TasksPanel";
@@ -27,7 +26,6 @@ export default function CandidateDetailsTabs({
 
   return (
     <div className="p-3 w-full space-y-6">
-      {/* Primary Tabs */}
       <Tabs
         value={primaryTab}
         onValueChange={setPrimaryTab}
@@ -80,7 +78,6 @@ export default function CandidateDetailsTabs({
         </TabsContent>
       </Tabs>
 
-      {/* Secondary Tabs */}
       <Tabs
         value={secondaryTab}
         onValueChange={setSecondaryTab}

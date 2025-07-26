@@ -1,20 +1,8 @@
-// SchedulePanel.tsx
 import React from "react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import {
-  Calendar as CalendarIcon,
-  Clock as ClockIcon,
-  ChevronDown,
-  Plus,
-} from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -33,20 +21,14 @@ interface SchedulePanelProps {
 }
 
 export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate }) => {
-  // === hard-coded example values ===
   const date = parseISO("2025-06-27");
   const startTime = "10:00";
   const endTime = "11:00";
   const attendees = [candidate.name];
-  const description = "";
   const associatedWith = [candidate.name];
-  const chosenCalendar = "";
-  const chosenScorecard = "";
-  const chosenTemplate = "";
 
   return (
     <div className="space-y-4 p-6 bg-white rounded-lg shadow mb-4">
-      {/* Top bar: Back + Title + Template */}
       <div className="flex items-center justify-between">
         <button className="text-gray-600 text-sm">← All events</button>
         <Input
@@ -65,7 +47,6 @@ export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate }) => {
         </Select>
       </div>
 
-      {/* Column headers */}
       <div className="grid grid-cols-4 gap-4 px-2 text-xs font-medium text-gray-500 uppercase">
         <div>Date</div>
         <div>Start time</div>
@@ -73,7 +54,6 @@ export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate }) => {
         <div>Attendees</div>
       </div>
 
-      {/* Row with values */}
       <div className="grid grid-cols-4 gap-4 px-2 items-center text-sm">
         <div>{format(date, "dd MMM, yyyy")}</div>
         <div>{format(parseISO(`2025-06-27T${startTime}`), "hh:mm a")}</div>
@@ -91,18 +71,14 @@ export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate }) => {
         </div>
       </div>
 
-      {/* Description */}
       <Textarea placeholder="Enter an event description" rows={3} readOnly />
 
-      {/* Rich-text toolbar placeholder */}
       <div className="h-8 border border-gray-200 rounded flex items-center px-2 text-gray-400 text-sm">
         [ Rich-text toolbar here ]
       </div>
 
-      {/* Footer: Associated with / Scorecard / Calendar / Save */}
       <div className="flex items-center justify-between">
         <div className="flex-1 space-y-4">
-          {/* Associated with */}
           <div>
             <div className="text-xs font-medium text-gray-500 uppercase">
               Associated with
@@ -120,7 +96,6 @@ export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate }) => {
             </div>
           </div>
 
-          {/* Scorecard */}
           <div>
             <div className="text-xs font-medium text-gray-500 uppercase">
               Scorecard
@@ -137,7 +112,6 @@ export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate }) => {
           </div>
         </div>
 
-        {/* Calendar + Save */}
         <div className="flex items-center space-x-4">
           <Select defaultValue="">
             <SelectTrigger className="w-48">

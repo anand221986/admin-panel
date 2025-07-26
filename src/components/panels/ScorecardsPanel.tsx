@@ -1,5 +1,3 @@
-// ScorecardsPanel.tsx
-import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
@@ -7,7 +5,7 @@ import { Star } from "lucide-react";
 export interface ScorecardItem {
   id: string;
   title: string;
-  score: number; 
+  score: number;
   reviewer: string;
 }
 

@@ -24,7 +24,6 @@ import { Upload, Loader2 } from "lucide-react";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-// --- PROPS and FORM SETUP ---
 interface PostNewJobModalProps {
   open: boolean;
   onClose: () => void;
@@ -167,8 +166,6 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
     }
     setIsParsing(true);
     try {
-      // In a real application, you would make an API call here.
-      // This is a mock response for demonstration.
       await new Promise((resolve) => setTimeout(resolve, 1500));
       const parsedData = {
         jobTitle: "Senior Software Engineer (React)",

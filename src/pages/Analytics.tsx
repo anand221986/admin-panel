@@ -1,16 +1,61 @@
-
 import Layout from "@/components/Layout";
 import MetricCard from "@/components/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Users, Clock, Target, Download, Filter } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from "recharts";
+import {
+  TrendingUp,
+  Users,
+  Clock,
+  Target,
+  Download,
+  Filter,
+} from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+} from "recharts";
 
 const metricsData = [
-  { title: "Time to Hire", value: "18 days", change: "-3 days from last month", icon: Clock, trend: "up" as const },
-  { title: "Cost per Hire", value: "$4,200", change: "-8% from last quarter", icon: Target, trend: "up" as const },
-  { title: "Application Rate", value: "12%", change: "+2% from last month", icon: TrendingUp, trend: "up" as const },
-  { title: "Offer Acceptance", value: "87%", change: "+5% from last quarter", icon: Users, trend: "up" as const },
+  {
+    title: "Time to Hire",
+    value: "18 days",
+    change: "-3 days from last month",
+    icon: Clock,
+    trend: "up" as const,
+  },
+  {
+    title: "Cost per Hire",
+    value: "$4,200",
+    change: "-8% from last quarter",
+    icon: Target,
+    trend: "up" as const,
+  },
+  {
+    title: "Application Rate",
+    value: "12%",
+    change: "+2% from last month",
+    icon: TrendingUp,
+    trend: "up" as const,
+  },
+  {
+    title: "Offer Acceptance",
+    value: "87%",
+    change: "+5% from last quarter",
+    icon: Users,
+    trend: "up" as const,
+  },
 ];
 
 const hiringFunnelData = [
@@ -50,11 +95,12 @@ const Analytics = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-slate-800">Analytics</h1>
-            <p className="text-slate-600 mt-1">Insights and metrics for your recruitment process.</p>
+            <p className="text-slate-600 mt-1">
+              Insights and metrics for your recruitment process.
+            </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="bg-white/80">
@@ -68,16 +114,13 @@ const Analytics = () => {
           </div>
         </div>
 
-        {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {metricsData.map((metric, index) => (
             <MetricCard key={index} {...metric} />
           ))}
         </div>
 
-        {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Hiring Funnel */}
           <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-slate-800">Hiring Funnel</CardTitle>
@@ -87,14 +130,19 @@ const Analytics = () => {
                 <BarChart data={hiringFunnelData} layout="horizontal">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis type="number" stroke="#64748b" />
-                  <YAxis dataKey="stage" type="category" width={80} stroke="#64748b" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                    }} 
+                  <YAxis
+                    dataKey="stage"
+                    type="category"
+                    width={80}
+                    stroke="#64748b"
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                    }}
                   />
                   <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                 </BarChart>
@@ -102,10 +150,11 @@ const Analytics = () => {
             </CardContent>
           </Card>
 
-          {/* Department Distribution */}
           <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-slate-800">Hires by Department</CardTitle>
+              <CardTitle className="text-slate-800">
+                Hires by Department
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -123,20 +172,23 @@ const Analytics = () => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                    }} 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 {departmentData.map((dept) => (
                   <div key={dept.name} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: dept.color }}></div>
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: dept.color }}
+                    ></div>
                     <span className="text-sm text-slate-600">{dept.name}</span>
                   </div>
                 ))}
@@ -144,10 +196,11 @@ const Analytics = () => {
             </CardContent>
           </Card>
 
-          {/* Time to Hire Trend */}
           <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-slate-800">Time to Hire Trend</CardTitle>
+              <CardTitle className="text-slate-800">
+                Time to Hire Trend
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -155,25 +208,31 @@ const Analytics = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="month" stroke="#64748b" />
                   <YAxis stroke="#64748b" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                    }} 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                    }}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="timeToHire" 
-                    stroke="#8b5cf6" 
+                  <Area
+                    type="monotone"
+                    dataKey="timeToHire"
+                    stroke="#8b5cf6"
                     fill="url(#colorGradient)"
                     strokeWidth={3}
                   />
                   <defs>
-                    <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    <linearGradient
+                      id="colorGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                 </AreaChart>
@@ -181,10 +240,11 @@ const Analytics = () => {
             </CardContent>
           </Card>
 
-          {/* Application Sources */}
           <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-slate-800">Application Sources</CardTitle>
+              <CardTitle className="text-slate-800">
+                Application Sources
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -192,25 +252,30 @@ const Analytics = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="source" stroke="#64748b" />
                   <YAxis stroke="#64748b" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                    }} 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                    }}
                   />
-                  <Bar dataKey="applications" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="applications"
+                    fill="#06b6d4"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
 
-        {/* Monthly Performance */}
         <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-slate-800">Monthly Performance</CardTitle>
+            <CardTitle className="text-slate-800">
+              Monthly Performance
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
@@ -218,28 +283,28 @@ const Analytics = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="month" stroke="#64748b" />
                 <YAxis stroke="#64748b" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                  }} 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "white",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                  }}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="applications" 
-                  stroke="#3b82f6" 
+                <Line
+                  type="monotone"
+                  dataKey="applications"
+                  stroke="#3b82f6"
                   strokeWidth={3}
-                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
                   name="Applications"
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="hires" 
-                  stroke="#10b981" 
+                <Line
+                  type="monotone"
+                  dataKey="hires"
+                  stroke="#10b981"
                   strokeWidth={3}
-                  dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                  dot={{ fill: "#10b981", strokeWidth: 2, r: 4 }}
                   name="Hires"
                 />
               </LineChart>

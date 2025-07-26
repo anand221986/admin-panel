@@ -1,5 +1,4 @@
-// ActivitiesPanel.tsx
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,14 +17,13 @@ export interface Activity {
   description: string;
   actorName: string;
   actorAvatarUrl?: string;
-  timestamp: string; // ISO string
+  timestamp: string;
 }
 
 interface ActivitiesPanelProps {
   activities?: Activity[];
 }
 
-// Sample hardcoded activities (5 items)
 const sampleActivities: Activity[] = [
   {
     id: "a1",
@@ -63,7 +61,6 @@ export function ActivitiesPanel({ activities }: ActivitiesPanelProps) {
   const [filterOpen, setFilterOpen] = useState(false);
   const acts = activities && activities.length ? activities : sampleActivities;
 
-  // Group activities by date (YYYY-MM-DD)
   const grouped = useMemo(() => {
     return acts.reduce<Record<string, Activity[]>>((acc, act) => {
       const dateKey = act.timestamp.split("T")[0];
@@ -73,12 +70,10 @@ export function ActivitiesPanel({ activities }: ActivitiesPanelProps) {
     }, {});
   }, [acts]);
 
-  // Count total
   const totalCount = acts.length;
 
   return (
     <div className="p-1">
-      {/* Filter header */}
       <div className="flex items-center justify-end space-x-2 mb-2">
         <Button
           variant="outline"
@@ -102,7 +97,6 @@ export function ActivitiesPanel({ activities }: ActivitiesPanelProps) {
         )}
       </div>
 
-      {/* Scrollable list */}
       <ScrollArea className="h-[400px]">
         {Object.entries(grouped).map(([dateKey, actsOnDate]) => (
           <div key={dateKey} className="space-y-2 my-4">

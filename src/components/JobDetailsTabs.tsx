@@ -1,8 +1,6 @@
-// JobDetailsTabs.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NotesPanel } from "./panels/NotesPanel";
-import { TasksPanel } from "./panels/TasksPanel";
 import { SchedulePanel } from "./panels/SchedulePanel";
 import { EmailPanel } from "./panels/EmailPanel";
 import { CallsPanel } from "./panels/CallsPanel";
@@ -13,7 +11,6 @@ import { FilesPanel } from "./panels/FilesPanel";
 import { ScorecardsPanel } from "./panels/ScorecardsPanel";
 import { ConversationsPanel } from "./panels/ConversationsPanel";
 import { CallsListPanel } from "./panels/CallsListPanel";
-import { TasksListPanel } from "./panels/TasksListPanel";
 
 export default function JobDetailsTabs({ job }: { job: any }) {
   const [primaryTab, setPrimaryTab] = useState<string>("notes");
@@ -27,7 +24,6 @@ export default function JobDetailsTabs({ job }: { job: any }) {
 
   return (
     <div className="p-3 w-full space-y-6">
-      {/* Primary Tabs */}
       <Tabs
         value={primaryTab}
         onValueChange={setPrimaryTab}
@@ -36,7 +32,6 @@ export default function JobDetailsTabs({ job }: { job: any }) {
         <TabsList className="flex w-full overflow-x-auto">
           {[
             { value: "notes", label: "Notes" },
-            { value: "tasks", label: "Tasks" },
             { value: "schedule", label: "Schedule" },
             { value: "email", label: "Email" },
             { value: "calls", label: "Calls" },
@@ -55,9 +50,6 @@ export default function JobDetailsTabs({ job }: { job: any }) {
         <TabsContent value="notes">
           <NotesPanel candidate={job} />
         </TabsContent>
-        <TabsContent value="tasks">
-          <TasksPanel candidate={job} />
-        </TabsContent>
         <TabsContent value="schedule">
           <SchedulePanel candidate={job} />
         </TabsContent>
@@ -75,7 +67,6 @@ export default function JobDetailsTabs({ job }: { job: any }) {
         </TabsContent>
       </Tabs>
 
-      {/* Secondary Tabs */}
       <Tabs
         value={secondaryTab}
         onValueChange={setSecondaryTab}
@@ -88,7 +79,6 @@ export default function JobDetailsTabs({ job }: { job: any }) {
             { value: "scorecards", label: "Scorecards" },
             { value: "conversations", label: "Conversations" },
             { value: "calls_list", label: "Calls" },
-            { value: "tasks_list", label: "Tasks" },
           ].map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -114,9 +104,6 @@ export default function JobDetailsTabs({ job }: { job: any }) {
         </TabsContent>
         <TabsContent value="calls_list">
           <CallsListPanel calls={job.calls} />
-        </TabsContent>
-        <TabsContent value="tasks_list">
-          <TasksListPanel tasks_list={job.tasks_list} />
         </TabsContent>
       </Tabs>
     </div>

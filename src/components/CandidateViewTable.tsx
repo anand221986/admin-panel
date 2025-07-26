@@ -49,7 +49,6 @@ import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-// --- CORRECTED INTERFACE ---
 interface CandidateForm {
   id: number;
   job_id: number;
@@ -82,25 +81,18 @@ interface ParsedEducation {
   institution: string;
   degree: string;
 }
-interface ParsedAddress {
-  firstline: string;
-  city: string | null;
-  country: string | null;
-}
 
 const formatCandidateAddress = (address: string): string => {
   if (!address || !address.trim()) return "NA";
-
   try {
     const parsed = JSON.parse(address);
-
     if (Array.isArray(parsed)) {
-      const latestAddress = [...parsed].reverse().find((addr) =>
-        addr && Object.values(addr).some((val) => val && val !== "")
-      );
-
+      const latestAddress = [...parsed]
+        .reverse()
+        .find(
+          (addr) => addr && Object.values(addr).some((val) => val && val !== "")
+        );
       if (!latestAddress) return "NA";
-
       const fields = [
         latestAddress.firstline,
         latestAddress.city,
@@ -109,21 +101,16 @@ const formatCandidateAddress = (address: string): string => {
         latestAddress.pincode,
         latestAddress.country,
       ];
-
       const cleaned = fields
         .map((val) => (val ?? "").trim())
-        .filter((val) => val); // removes empty strings
-
+        .filter((val) => val);
       return cleaned.length ? cleaned.join(", ") : "NA";
     }
-
-    return "NA"; // Not an array
+    return "NA";
   } catch {
-    // Fallback to plain address string
     return address.trim() || "NA";
   }
 };
-
 
 interface CandidateViewListProps {
   loading: boolean;
@@ -222,20 +209,15 @@ export default function CandidateViewList({
 
   const handleDelete = async () => {
     if (!selected.size) return;
-
     try {
       await axios.post(`${API_BASE_URL}/candidate/bulk-delete`, {
         data: { ids: [...selected] },
       });
-
       setLocalCandidates((prev) => prev.filter((c) => !selected.has(c.id)));
-
       setSelected(new Set());
-
       toast.success("Deleted!");
     } catch (err) {
       console.error("Failed to delete candidates", err);
-
       toast.error("Could not delete candidates");
     }
   };
@@ -436,14 +418,6 @@ export default function CandidateViewList({
                       if (Array.isArray(eduData) && eduData.length > 0)
                         parsedEdu = eduData[0];
                     } catch {}
-
-                    let parsedAddr: ParsedAddress | null = null;
-                    try {
-                      const addrData = JSON.parse(candidate.address);
-                      if (Array.isArray(addrData) && addrData.length > 0)
-                        parsedAddr = addrData[0];
-                    } catch {}
-
                     return (
                       <TableRow
                         key={candidate.id}
@@ -662,13 +636,7 @@ export default function CandidateViewList({
                         {visibleColumns.includes("address") && (
                           <TableCell className="min-w-[200px]">
                             <div className="whitespace-nowrap text-sm text-slate-500">
-                              {[
-                                parsedAddr?.firstline,
-                                parsedAddr?.city,
-                                parsedAddr?.country,
-                              ]
-                                .filter(Boolean)
-                                .join(", ")}
+                              {formatCandidateAddress(candidate.address)}
                             </div>
                           </TableCell>
                         )}

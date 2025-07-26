@@ -10,21 +10,19 @@ import CandidateViewList from "@/components/CandidateViewTable";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-// --- CORRECTED INTERFACE ---
-// This now accurately reflects the data from your API response.
 interface CandidateForm {
   id: number;
-  job_id: number; // Corrected: Was string, API sends number
+  job_id: number;
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
   headline: string | null;
   status: string;
-  address: string; // This is a JSON string from the API
-  experience: string; // This is a JSON string
+  address: string;
+  experience: string;
   photo_url: string | null;
-  education: string; // This is a JSON string
+  education: string;
   summary: string | null;
   resume_url: string;
   cover_letter: string | null;
@@ -35,24 +33,40 @@ interface CandidateForm {
   current_ctc: string | null;
   expected_ctc: string | null;
   skill: string[];
-  college: string | null;
-  degree: string | null;
-  created_at: string; // Added: Was missing
-  updated_at: string; // Added: Was missing
-  linkedinprofile: string; // Corrected: Was 'linkedin'
-  institutiontier: string; // Added: Was missing
-  companytier: string; // Added: Was missing
+  created_at: string;
+  updated_at: string;
+  linkedinprofile: string;
 }
 
-// Helper interface for the parsed address
-interface ParsedAddress {
-  firstline: string;
-  city: string | null;
-  pincode: string | null;
-  district: string | null;
-  state: string | null;
-  country: string | null;
-}
+const formatCandidateAddress = (address: string): string => {
+  if (!address || !address.trim()) return "NA";
+  try {
+    const parsed = JSON.parse(address);
+    if (Array.isArray(parsed)) {
+      const latestAddress = [...parsed]
+        .reverse()
+        .find(
+          (addr) => addr && Object.values(addr).some((val) => val && val !== "")
+        );
+      if (!latestAddress) return "NA";
+      const fields = [
+        latestAddress.firstline,
+        latestAddress.city,
+        latestAddress.district,
+        latestAddress.state,
+        latestAddress.pincode,
+        latestAddress.country,
+      ];
+      const cleaned = fields
+        .map((val) => (val ?? "").trim())
+        .filter((val) => val);
+      return cleaned.length ? cleaned.join(", ") : "NA";
+    }
+    return "NA";
+  } catch {
+    return address.trim() || "NA";
+  }
+};
 
 export default function Candidates() {
   const [candidates, setCandidates] = useState<CandidateForm[]>([]);
@@ -77,14 +91,12 @@ export default function Candidates() {
     }
   };
 
-  // --- CORRECTED EXPORT LOGIC ---
   const handleExport = () => {
     if (!candidates.length) {
       toast.warning("No candidates to export.");
       return;
     }
 
-    // Header updated to match available data
     const header = [
       "Name",
       "Job ID",
@@ -97,40 +109,18 @@ export default function Candidates() {
       "Skills",
     ];
 
-    const rows = candidates.map((c) => {
-      // Safely parse the address JSON string
-      let location = "N/A";
-      try {
-        const addresses: ParsedAddress[] = JSON.parse(c.address);
-        if (addresses && addresses.length > 0) {
-          // Use the first available address for the location
-          const firstAddress = addresses[0];
-          location = [
-            firstAddress.firstline,
-            firstAddress.city,
-            firstAddress.country,
-          ]
-            .filter(Boolean) // Remove null or empty parts
-            .join(", ");
-        }
-      } catch (e) {
-        console.error("Failed to parse address for candidate ID:", c.id);
-      }
+    const rows = candidates.map((c) => [
+      `${c.first_name} ${c.last_name}`,
+      c.job_id,
+      c.email,
+      c.phone,
+      c.linkedinprofile,
+      c.status,
+      c.current_company || "N/A",
+      formatCandidateAddress(c.address),
+      c.skill?.join(";") || "N/A",
+    ]);
 
-      return [
-        `${c.first_name} ${c.last_name}`,
-        c.job_id,
-        c.email,
-        c.phone,
-        c.linkedinprofile, // Corrected: Use 'linkedinprofile'
-        c.status,
-        c.current_company || "N/A", // Provide fallback for null values
-        location,
-        c.skill?.join(";") || "N/A",
-      ];
-    });
-
-    // Enclose each field in quotes to handle commas within fields
     const csvContent = [header, ...rows]
       .map((r) =>
         r.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(",")
@@ -139,14 +129,21 @@ export default function Candidates() {
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
-    saveAs(blob, "candidates.csv");
+    const today = new Date()
+      .toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+      .replace(/\//g, "-");
+    saveAs(blob, `candidates-${today}.csv`);
+
     toast.success("Exported CSV file successfully!");
   };
 
   return (
     <Layout>
       <div className="space-y-4">
-        {/* Header */}
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
@@ -161,7 +158,7 @@ export default function Candidates() {
               onClick={handleExport}
               variant="outline"
               className="bg-white/80"
-              disabled={loading} // Disable button while loading
+              disabled={loading}
             >
               <Download className="mr-2 h-4 w-4" />
               Export
@@ -175,7 +172,6 @@ export default function Candidates() {
           fetchCandidates={fetchCandidates}
         />
 
-        {/* The stats cards section remains the same and will work correctly now */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Card className="border-0 bg-white/60 shadow-sm backdrop-blur-sm">
             <CardContent className="p-4">

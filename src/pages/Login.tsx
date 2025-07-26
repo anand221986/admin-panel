@@ -1,4 +1,3 @@
-import React from "react";
 import LoginForm from "@/components/LoginForm";
 const Login = () => {
   return (
@@ -20,7 +19,6 @@ const Login = () => {
             </p>
           </div>
 
-          {/* Login Form Section */}
           <div className="w-full">
             <div className="lg:hidden mb-8"></div>
             <LoginForm />

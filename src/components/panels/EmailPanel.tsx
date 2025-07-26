@@ -1,5 +1,3 @@
-// EmailPanel.tsx
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +10,6 @@ import {
 } from "@/components/ui/select";
 import {
   ChevronDown,
-  Plus,
   Trash2,
   Link as LinkIcon,
   Image as ImageIcon,
@@ -39,7 +36,6 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
 
   return (
     <div className="space-y-4 p-6 bg-white rounded-lg shadow mb-4">
-      {/* TO / CC / BCC */}
       <div className="flex items-center space-x-2">
         <span className="font-normal">To</span>
         <div className="flex-1 flex items-center flex-wrap gap-2 bg-gray-50 p-2 rounded-lg">
@@ -58,7 +54,6 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
         <button className="text-sm text-gray-600">BCC</button>
       </div>
 
-      {/* Subject & Template */}
       <div className="flex items-center justify-between">
         <Input className="flex-1 mr-4" placeholder="Subject" readOnly />
         <Select defaultValue="">
@@ -72,12 +67,9 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
         </Select>
       </div>
 
-      {/* Body */}
       <Textarea placeholder="Compose your email..." rows={6} readOnly />
 
-      {/* Toolbar */}
       <div className="flex items-center space-x-3 border-t border-b border-gray-200 py-2 text-gray-600">
-        {/* Element type */}
         <Select defaultValue="div">
           <SelectTrigger className="w-20">
             <SelectValue>Div</SelectValue>
@@ -89,7 +81,6 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
           </SelectContent>
         </Select>
 
-        {/* Font size */}
         <Select defaultValue="13px">
           <SelectTrigger className="w-20">
             <SelectValue>13px</SelectValue>
@@ -101,11 +92,9 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
           </SelectContent>
         </Select>
 
-        {/* Text styling */}
         <Italic size={16} />
         <Underline size={16} />
 
-        {/* Font family */}
         <Select defaultValue="Arial">
           <SelectTrigger className="w-20">
             <SelectValue>Arial</SelectValue>
@@ -116,10 +105,8 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
           </SelectContent>
         </Select>
 
-        {/* Highlight */}
         <Highlighter size={16} />
 
-        {/* Insertions */}
         <LinkIcon size={16} />
         <ImageIcon size={16} />
         <ListIcon size={16} />
@@ -128,7 +115,6 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
         <Mic size={16} />
       </div>
 
-      {/* Actions */}
       <div className="flex items-center space-x-4">
         <Button className="bg-blue-600 text-white">
           Send

@@ -24,12 +24,10 @@ export default function JobProfileModal({ open, onOpenChange, job }) {
           overflow-hidden
         "
       >
-        {/* Header */}
         <DialogHeader className="border-b px-4 py-4 bg-gray-100">
           <DialogTitle>Job Profile</DialogTitle>
         </DialogHeader>
 
-        {/* Scrollable Content */}
         <div
           className="
             flex-1 

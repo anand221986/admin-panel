@@ -1,10 +1,13 @@
-// TextPanel.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { ChevronDown } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 export interface Person {
   id: string;
@@ -13,17 +16,20 @@ export interface Person {
 
 interface TextPanelProps {
   candidate: Person;
-  onSendSMS?: (data: { to: string[]; message: string; template: string }) => void;
+  onSendSMS?: (data: {
+    to: string[];
+    message: string;
+    template: string;
+  }) => void;
 }
 
 export function TextPanel({ candidate, onSendSMS }: TextPanelProps) {
-  // form state
   const [recipients, setRecipients] = useState<string[]>([candidate.name]);
   const [message, setMessage] = useState<string>("");
   const [template, setTemplate] = useState<string>("");
 
   const removeRecipient = (name: string) => {
-    setRecipients(prev => prev.filter(n => n !== name));
+    setRecipients((prev) => prev.filter((n) => n !== name));
   };
 
   const handleSend = () => {
@@ -32,44 +38,48 @@ export function TextPanel({ candidate, onSendSMS }: TextPanelProps) {
 
   return (
     <div className="space-y-4 p-6 bg-white rounded-lg shadow">
-      {/* Recipients row */}
       <div className="flex items-center space-x-2">
         <span className="font-medium">To</span>
         <div className="flex-1 flex flex-wrap items-center gap-2 bg-gray-50 p-2 rounded">
-          {recipients.map(name => (
-            <span key={name} className="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-sm">
+          {recipients.map((name) => (
+            <span
+              key={name}
+              className="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-sm"
+            >
               {name}
-              <span className="ml-1 cursor-pointer" onClick={() => removeRecipient(name)}>×</span>
+              <span
+                className="ml-1 cursor-pointer"
+                onClick={() => removeRecipient(name)}
+              >
+                ×
+              </span>
             </span>
           ))}
           <button
             className="text-sm text-gray-400"
-            onClick={() => setRecipients(prev => [...prev, "New Recipient"])}
+            onClick={() => setRecipients((prev) => [...prev, "New Recipient"])}
           >
             + add more
           </button>
         </div>
       </div>
 
-      {/* Message textarea with char count */}
       <div className="relative">
         <Textarea
           placeholder="Enter your message..."
           rows={4}
           value={message}
-          onChange={e => setMessage(e.target.value)}
+          onChange={(e) => setMessage(e.target.value)}
         />
         <div className="absolute bottom-2 right-4 text-xs text-gray-500">
           {message.length}/160
         </div>
       </div>
 
-      {/* Template selector */}
       <div className="flex items-center justify-between">
         <Select value={template} onValueChange={setTemplate}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Select template" />
-            
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="tmpl1">SMS Template 1</SelectItem>

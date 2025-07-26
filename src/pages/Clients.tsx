@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Plus,
   Search,
-  Building2,
   MapPin,
   Phone,
   Mail,
@@ -111,7 +110,6 @@ const Clients = () => {
 
   const getHostname = (url: string) => {
     try {
-      // ensure protocol
       const normalized = url.startsWith("http") ? url : `https://${url}`;
       return new URL(normalized).hostname;
     } catch {
@@ -122,7 +120,6 @@ const Clients = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-slate-800">Clients</h1>
@@ -139,14 +136,11 @@ const Clients = () => {
           </Button>
         </div>
 
-        {/* Add/Edit Modal */}
         <AddClientModal
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          // onSuccess={fetchClients}
         />
 
-        {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -172,14 +166,12 @@ const Clients = () => {
           </div>
         </div>
 
-        {/* Empty State */}
         {!visibleClients.length && (
           <div className="text-center py-20 text-gray-500">
             No clients match your search or filters.
           </div>
         )}
 
-        {/* Clients Grid */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {visibleClients.map((c) => (
             <Card
@@ -223,11 +215,7 @@ const Clients = () => {
                     align="end"
                     className="bg-white/95 backdrop-blur-sm"
                   >
-                    <DropdownMenuItem
-                      onClick={() => {
-                        /* open edit modal with c data */
-                      }}
-                    >
+                    <DropdownMenuItem onClick={() => {}}>
                       Edit Client
                     </DropdownMenuItem>
                     <DropdownMenuItem>View Contract</DropdownMenuItem>

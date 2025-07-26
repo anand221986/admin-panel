@@ -45,7 +45,6 @@ export default function LoginForm() {
         { token: credentialResponse.credential },
         { headers: { "Content-Type": "application/json" } }
       );
-      const { token: appToken } = res.data;
       await login(null, null);
       navigate("/");
     } catch (err) {
@@ -61,7 +60,6 @@ export default function LoginForm() {
     <div className="w-full max-w-md mx-auto">
       <div className="bg-card rounded-lg shadow-lg p-8 border border-border">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email Field */}
           <div className="space-y-1">
             <Label htmlFor="email" className="text-sm font-medium">
               Email Address
@@ -80,7 +78,6 @@ export default function LoginForm() {
             </div>
           </div>
 
-          {/* Password Field */}
           <div className="space-y-1">
             <Label htmlFor="password" className="text-sm font-medium">
               Password
@@ -110,7 +107,6 @@ export default function LoginForm() {
             </div>
           </div>
 
-          {/* Remember & Forgot */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -141,7 +137,6 @@ export default function LoginForm() {
           </Button>
         </form>
 
-        {/* Signup Link */}
         <p className="mt-3 text-center text-sm text-muted-foreground">
           Don’t have an account?{" "}
           <button
@@ -152,7 +147,6 @@ export default function LoginForm() {
           </button>
         </p>
 
-        {/* OR Divider & Google Login */}
         <div className="my-3 flex w-full items-center">
           <span className="flex-grow border-t border-gray-200" />
           <span className="px-3 text-gray-400">OR</span>

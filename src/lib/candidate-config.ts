@@ -1,5 +1,3 @@
-// lib/candidate-config.ts
-
 export interface ColumnConfig {
   key: string;
   label: string;

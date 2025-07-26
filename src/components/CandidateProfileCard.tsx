@@ -3,13 +3,6 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -19,8 +12,63 @@ import { MoreVertical } from "lucide-react";
 import StarRating from "./StarRating";
 import { Badge } from "@/components/ui/badge";
 import { BulkUpdateFieldsModal } from "./modals/BulkUpdateFieldsModal";
+import AssignToJobModal from "./modals/AssigntoJobModal";
 
-export default function CandidateProfileCard({ candidate }) {
+interface Job {
+  id: number;
+  title: string;
+}
+
+interface Education {
+  degree: string;
+  institution: string;
+  duration?: string;
+}
+
+interface Experience {
+  title: string;
+  company: string;
+  role: string;
+  duration?: string;
+  details?: string[];
+}
+
+interface CandidateProfile {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  headline: string | null;
+  photo_url: string | null;
+  education: string;
+  experience: string;
+  current_ctc: string | null;
+  expected_ctc: string | null;
+  skill: string[];
+  current_company: string | null;
+  linkedinprofile: string;
+  rating: number | string | null;
+  jobs: Job[];
+}
+
+interface ProfileCardProps {
+  candidate: CandidateProfile;
+}
+
+const parseJSON = (data: string | any[]): any[] => {
+  if (typeof data === "string") {
+    try {
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return Array.isArray(data) ? data : [];
+};
+
+export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
   const {
     id,
     first_name,
@@ -28,49 +76,28 @@ export default function CandidateProfileCard({ candidate }) {
     email,
     phone,
     headline,
-    address,
     photo_url,
     education,
     experience,
-    summary,
-    resume_url,
-    cover_letter,
-    status,
-    recruiter_status,
-    hmapproval,
     current_ctc,
     expected_ctc,
     skill = [],
-    college,
-    degree,
     current_company,
-    linkedIn,
+    linkedinprofile: linkedIn,
     rating,
-    owner,
     jobs = [],
   } = candidate;
 
   const [editOpen, setEditOpen] = useState(false);
+  const [jobOpen, setJobOpen] = useState(false);
   const initials = [first_name?.[0], last_name?.[0]].filter(Boolean).join("");
 
-  const parseJSON = (data) => {
-    if (typeof data === "string") {
-      try {
-        return JSON.parse(data);
-      } catch {
-        return data;
-      }
-    }
-    return data;
-  };
-
-  const parsedEducation = parseJSON(education) || [];
-  const parsedExperience = parseJSON(experience) || [];
+  const parsedEducation: Education[] = parseJSON(education);
+  const parsedExperience: Experience[] = parseJSON(experience);
 
   return (
     <div className="w-full p-3">
       <Card className="p-4 space-y-4 shadow-md">
-        {/* Header */}
         <div className="flex items-center space-x-4">
           <Avatar className="h-16 w-16">
             {photo_url ? (
@@ -106,7 +133,6 @@ export default function CandidateProfileCard({ candidate }) {
           </DropdownMenu>
         </div>
 
-        {/* Contact & CTC */}
         <div className="space-y-1 text-sm text-gray-700">
           {email && <p>Email: {email}</p>}
           {phone && <p>Phone: {phone}</p>}
@@ -127,18 +153,16 @@ export default function CandidateProfileCard({ candidate }) {
           {expected_ctc && <p>Expected CTC: {expected_ctc}</p>}
         </div>
 
-        {/* Rating & Tags */}
-        <StarRating rating={rating || 0} />
+        <StarRating rating={Number(rating) || 0} />
         <Button variant="outline" size="sm">
           + Add tag
         </Button>
       </Card>
 
-      {/* Jobs */}
       <Card className="p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">JOBS</p>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setJobOpen(true)}>
             + Add job
           </Button>
         </div>
@@ -153,7 +177,6 @@ export default function CandidateProfileCard({ candidate }) {
         )}
       </Card>
 
-      {/* Education */}
       <Card className="p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">EDUCATION</p>
@@ -177,7 +200,6 @@ export default function CandidateProfileCard({ candidate }) {
         )}
       </Card>
 
-      {/* Experience */}
       <Card className="p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">EXPERIENCE</p>
@@ -208,7 +230,6 @@ export default function CandidateProfileCard({ candidate }) {
         )}
       </Card>
 
-      {/* Skills */}
       <Card className="p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">SKILLS</p>
@@ -229,7 +250,6 @@ export default function CandidateProfileCard({ candidate }) {
         )}
       </Card>
 
-      {/* Edit Modal */}
       {editOpen && (
         <BulkUpdateFieldsModal
           open={editOpen}
@@ -238,6 +258,15 @@ export default function CandidateProfileCard({ candidate }) {
           onSuccess={() => {
             setEditOpen(false);
           }}
+        />
+      )}
+
+      {jobOpen && (
+        <AssignToJobModal
+          open={jobOpen}
+          onOpenChange={() => setJobOpen(false)}
+          candidateIds={[id]}
+          onSuccess={() => setJobOpen(false)}
         />
       )}
     </div>

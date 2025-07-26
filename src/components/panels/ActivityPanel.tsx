@@ -1,5 +1,3 @@
-// ActivityPanel.tsx
-import React from "react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,12 +13,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import {
-  Calendar as CalendarIcon,
-  Clock as ClockIcon,
-  ChevronDown,
-  Plus,
-} from "lucide-react";
+import { Calendar as CalendarIcon, Clock as ClockIcon } from "lucide-react";
 
 export interface Person {
   id: string;
@@ -32,13 +25,11 @@ interface ActivityPanelProps {
 }
 
 export function ActivityPanel({ candidate }: ActivityPanelProps) {
-  // static example values
   const activityDate = parseISO("2025-06-26");
   const activityTime = "15:42";
 
   return (
     <div className="space-y-4 p-6 bg-white rounded-lg shadow mb-4">
-      {/* Header row: fields labels */}
       <div className="grid grid-cols-4 gap-4 px-2 text-xs font-medium text-gray-500 uppercase">
         <div>Activity type</div>
         <div>Activity date</div>
@@ -46,7 +37,6 @@ export function ActivityPanel({ candidate }: ActivityPanelProps) {
         <div>Activity by</div>
       </div>
 
-      {/* Values row */}
       <div className="grid grid-cols-4 gap-4 px-2 items-center text-sm">
         <div>
           <Select defaultValue="">
@@ -85,12 +75,10 @@ export function ActivityPanel({ candidate }: ActivityPanelProps) {
         <div className="text-sm capitalize">{candidate.first_name}</div>
       </div>
 
-      {/* Rich-text toolbar placeholder */}
       <div className="h-8 border border-gray-200 rounded flex items-center px-2 text-gray-400 text-sm">
         [ Rich-text toolbar here ]
       </div>
 
-      {/* Associated with */}
       <div className="space-y-2">
         <div className="text-xs font-medium text-gray-500 uppercase">
           Associated with
@@ -104,7 +92,6 @@ export function ActivityPanel({ candidate }: ActivityPanelProps) {
         </div>
       </div>
 
-      {/* Template & Save */}
       <div className="flex items-center justify-between">
         <Select defaultValue="">
           <SelectTrigger className="w-40">

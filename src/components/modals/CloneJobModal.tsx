@@ -307,7 +307,6 @@ export default function CloneJobModal({
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* General Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -433,7 +432,6 @@ export default function CloneJobModal({
                 )}
               </div>
             </div>
-            {/* Checkbox */}
             <div className="flex items-center space-x-2">
               <Checkbox
                 checked={form.office_on_careers_page}
@@ -443,7 +441,6 @@ export default function CloneJobModal({
                 Show office on careers page
               </label>
             </div>
-            {/* Additional Locations */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Additional Office Locations
@@ -467,7 +464,6 @@ export default function CloneJobModal({
                 ))}
               </div>
             </div>
-            {/* Descriptions */}
             <div className="grid gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -509,7 +505,6 @@ export default function CloneJobModal({
                 />
               </div>
             </div>
-            {/* Company Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -546,7 +541,6 @@ export default function CloneJobModal({
                 )}
               </div>
             </div>
-            {/* Salary Section */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -599,7 +593,6 @@ export default function CloneJobModal({
                 )}
               </div>
             </div>
-            {/* Keywords */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Keywords (Press Enter to add)
@@ -623,7 +616,6 @@ export default function CloneJobModal({
                 ))}
               </div>
             </div>
-            {/* Submit Button */}
             <div className="pt-4 flex justify-end">
               <Button
                 type="submit"

@@ -1,14 +1,8 @@
-// CallsPanel.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectTrigger,
@@ -19,7 +13,6 @@ import {
 import {
   PhoneCall,
   User,
-  ChevronDown,
   Italic,
   Underline,
   Highlighter,
@@ -70,7 +63,6 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
 
   return (
     <div className="space-y-4 p-6 bg-white rounded-lg shadow mb-4">
-      {/* Logged-call header */}
       <div className="flex items-center justify-between bg-gray-50 p-3 rounded">
         <div className="flex items-center space-x-2 text-gray-700">
           <PhoneCall className="w-5 h-5" />
@@ -102,7 +94,6 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
         </div>
       </div>
 
-      {/* Field labels */}
       <div className="grid grid-cols-4 gap-4 px-2 text-xs font-medium text-gray-500 uppercase">
         <div>Date</div>
         <div>Meeting type</div>
@@ -110,7 +101,6 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
         <div>Associated with</div>
       </div>
 
-      {/* Field values */}
       <div className="grid grid-cols-4 gap-4 px-1 items-center text-sm">
         <div>
           <Input
@@ -169,7 +159,6 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
         </div>
       </div>
 
-      {/* Notes / description */}
       <Textarea
         placeholder="Enter call notes…"
         rows={4}
@@ -177,7 +166,6 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
         onChange={(e) => setNotes(e.target.value)}
       />
 
-      {/* Rich-text toolbar */}
       <div className="flex items-center space-x-3 border-t border-b border-gray-200 py-2 text-gray-600">
         <Select defaultValue="div">
           <SelectTrigger className="w-20">
@@ -212,7 +200,6 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
         <Mic size={16} />
       </div>
 
-      {/* Template + Log call */}
       <div className="flex items-center justify-between">
         <Select value={template} onValueChange={(v) => setTemplate(v)}>
           <SelectTrigger className="w-40">

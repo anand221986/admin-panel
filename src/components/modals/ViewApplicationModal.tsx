@@ -113,7 +113,6 @@ export default function ViewApplicationsModal({
           </div>
         </DialogHeader>
 
-        {/* Body */}
         {loading ? (
           <div className="flex justify-center py-8">Loading...</div>
         ) : (

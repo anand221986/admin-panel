@@ -133,7 +133,6 @@ const AssignToJobModal: React.FC<AssignToJobModalProps> = ({
         />
 
         <div className="flex gap-4">
-          {/* Job List */}
           <ScrollArea className="h-64 w-1/2 border p-2 rounded">
             {filteredJobs.map((job) => (
               <div
@@ -165,7 +164,6 @@ const AssignToJobModal: React.FC<AssignToJobModalProps> = ({
             )}
           </ScrollArea>
 
-          {/* Details Preview */}
           <div className="w-1/2 h-64 overflow-auto border p-2 rounded">
             {previewJob ? (
               <div className="space-y-2">

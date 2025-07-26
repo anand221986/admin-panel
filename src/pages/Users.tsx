@@ -11,40 +11,85 @@ import CandidateViewList from "@/components/CandidateViewTable";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
+interface ParsedAddress {
+  firstline: string;
+  city: string | null;
+  pincode: string | null;
+  district: string | null;
+  state: string | null;
+  country: string | null;
+}
+
 interface CandidateForm {
   id: number;
-  job_id: string;
+  job_id: number;
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
-  linkedin: string;
-  headline: string;
+  headline: string | null;
   status: string;
   address: string;
-  street1: string;
-  street2: string;
-  city: string;
-  state: string;
-  country: string;
-  zipcode: string;
   experience: string;
-  photo_url: string;
+  photo_url: string | null;
   education: string;
-  summary: string;
+  summary: string | null;
   resume_url: string;
-  cover_letter: string;
-  rating: string;
+  cover_letter: string | null;
+  rating: string | null;
   hmapproval: string;
   recruiter_status: string;
-  current_company: string;
-  current_ctc: string;
-  expected_ctc: string;
-  currency: string;
+  current_company: string | null;
+  current_ctc: string | null;
+  expected_ctc: string | null;
   skill: string[];
-  college: string;
-  degree: string;
+  college: string | null;
+  degree: string | null;
+  created_at: string;
+  updated_at: string;
+  linkedinprofile: string;
+  institutiontier: string;
+  companytier: string;
 }
+
+const parseAddress = (addressString: string): ParsedAddress => {
+  if (!addressString) {
+    return {
+      firstline: "",
+      city: null,
+      district: null,
+      state: null,
+      pincode: null,
+      country: null,
+    };
+  }
+  const parts = addressString.split(",").map((part) => part.trim());
+  return {
+    firstline: parts[0] || "",
+    city: parts[1] || null,
+    district: parts[2] || null,
+    state: parts[3] || null,
+    pincode: parts[4] || null,
+    country: parts[5] || null,
+  };
+};
+
+const getParsedAddress = (address: string | ParsedAddress): ParsedAddress => {
+  if (typeof address === "string") {
+    return parseAddress(address);
+  }
+  if (address) {
+    return address;
+  }
+  return {
+    firstline: "",
+    city: null,
+    district: null,
+    state: null,
+    pincode: null,
+    country: null,
+  };
+};
 
 export default function Users() {
   const [candidates, setCandidates] = useState<CandidateForm[]>([]);
@@ -86,29 +131,40 @@ export default function Users() {
       "Experience",
       "CTC",
       "Expected CTC",
-      "Currency",
       "Location",
       "Skills",
     ];
 
-    const rows = candidates.map((c) => [
-      `${c.first_name} ${c.last_name}`,
-      c.job_id,
-      c.email,
-      c.phone,
-      c.linkedin,
-      c.status,
-      c.current_company,
-      c.experience,
-      c.current_ctc,
-      c.expected_ctc,
-      c.currency,
-      `${c.street1}, ${c.city}, ${c.state}, ${c.country}, ${c.zipcode}`,
-      c.skill?.join(";") || "",
-    ]);
+    const rows = candidates.map((c) => {
+      const parsedAddr = getParsedAddress(c.address);
+      const location = [
+        parsedAddr.firstline,
+        parsedAddr.city,
+        parsedAddr.state,
+        parsedAddr.country,
+        parsedAddr.pincode,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      return [
+        `${c.first_name} ${c.last_name}`,
+        c.job_id,
+        c.email,
+        c.phone,
+        c.linkedinprofile,
+        c.status,
+        c.current_company,
+        c.experience,
+        c.current_ctc,
+        c.expected_ctc,
+        location,
+        c.skill?.join(";") || "",
+      ];
+    });
 
     const csvContent = [header, ...rows]
-      .map((r) => r.map((field) => `"${field}"`).join(","))
+      .map((r) => r.map((field) => `"${field ?? ""}"`).join(","))
       .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -120,12 +176,9 @@ export default function Users() {
   return (
     <Layout>
       <div className="space-y-4">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              Ats Users
-            </h1>
+            <h1 className="text-2xl font-bold text-slate-800">Ats Users</h1>
             <p className="text-slate-600 text-sm">
               Manage Users Access and approvals
             </p>

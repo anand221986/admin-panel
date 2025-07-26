@@ -19,7 +19,6 @@ import {
   SelectScrollDownButton,
   SelectItem,
 } from "@/components/ui/select";
-import { ChevronDown } from "lucide-react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import axios from "axios";
@@ -262,13 +261,6 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
     onClose();
   };
 
-  const DialogDescription = () => (
-    <p id="dialog-description" className="sr-only">
-      Fill in the client details and submit to add a new client or upload a
-      CSV/Excel file.
-    </p>
-  );
-
   return (
     <Dialog
       open={open}
@@ -298,7 +290,6 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
                 onSubmit={handleSubmit}
                 className="grid grid-cols-1 md:grid-cols-2 gap-4"
               >
-                {/* Basic Info */}
                 <div>
                   <label className="text-sm">Name</label>
                   <Input
@@ -416,7 +407,6 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
                   )}
                 </div>
 
-                {/* Tags */}
                 <div className="md:col-span-2">
                   <label className="text-sm">Tags</label>
                   <div className="flex gap-2">
@@ -454,7 +444,6 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
                   </div>
                 </div>
 
-                {/* Additional Details */}
                 <div>
                   <label className="text-sm">Industry</label>
                   <Select
@@ -517,7 +506,6 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
                   )}
                 </div>
 
-                {/* Currency & Revenue */}
                 <div className="md:col-span-2 flex gap-4">
                   <div className="w-1/5">
                     <label className="text-sm">Currency</label>
@@ -571,7 +559,6 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="md:col-span-2 flex justify-end gap-3 mt-4">
                   <DialogClose asChild>
                     <Button

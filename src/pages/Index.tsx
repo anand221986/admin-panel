@@ -10,7 +10,6 @@ import {
   Plus,
   Clock,
   CheckCircle,
-  DollarSign,
 } from "lucide-react";
 import {
   BarChart,
@@ -23,7 +22,7 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
 import AddClientModal from "@/components/modals/AddClientModal";
 import axios from "axios";
@@ -33,7 +32,7 @@ type Metric = {
   title: string;
   value: string | number;
   change: string;
-  icon: any; // you can refine this if you're using a specific icon type
+  icon: any;
   trend: "up" | "down";
 };
 const metricsData = [
@@ -119,25 +118,22 @@ const recentActivities = [
   },
 ];
 
-
-
-
 const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [metricsData, setMetricsData] = useState<Metric[]>([]);
   const [isLoading, setLoading] = useState<boolean>(true);
   useEffect(() => {
-   fetchstats();
+    fetchstats();
   }, []);
-    const fetchstats = async () => {
+  const fetchstats = async () => {
     setLoading(true);
     try {
       const { data } = await axios.get(
         `${API_BASE_URL}/common/getDashboardStats`
       );
       setMetricsData(data.result);
-      console.log(data.result)
+      console.log(data.result);
     } catch (err) {
       console.error(err);
     } finally {
@@ -145,11 +141,9 @@ const Index = () => {
     }
   };
 
- 
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-slate-800">
@@ -160,7 +154,11 @@ const Index = () => {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button onClick={() => setIsClientModalOpen(true)} variant="outline" className="bg-white/80">
+            <Button
+              onClick={() => setIsClientModalOpen(true)}
+              variant="outline"
+              className="bg-white/80"
+            >
               <Building2 className="w-4 h-4 mr-2" />
               Add Client
             </Button>
@@ -179,20 +177,17 @@ const Index = () => {
           onClose={() => setIsClientModalOpen(false)}
         />
 
-        {/* Post Job Modal */}
         <PostNewJobModal
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
 
-        {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {metricsData.map((metric, index) => (
             <MetricCard key={index} {...metric} />
           ))}
         </div>
 
-        {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
             <CardHeader>
@@ -263,7 +258,6 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Recent Activity */}
         <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-slate-800">

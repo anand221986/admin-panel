@@ -1,5 +1,3 @@
-// FilesPanel.tsx
-import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, parseISO } from "date-fns";
@@ -9,7 +7,7 @@ export interface FileItem {
   id: string;
   name: string;
   url: string;
-  uploadedAt: string; // ISO date string
+  uploadedAt: string;
   uploadedBy: string;
   uploaderAvatarUrl?: string;
 }

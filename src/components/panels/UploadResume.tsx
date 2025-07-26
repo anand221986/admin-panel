@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -152,17 +151,6 @@ export default function UploadResume() {
             ))}
           </div>
         )}
-
-        {/* {resumeupload && (
-          <progress
-            value={progress}
-            max={100}
-            className="w-full mt-4"
-            aria-valuenow={progress}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          />
-        )} */}
 
         <div className="mt-4 flex justify-end gap-2">
           <DialogClose asChild>
