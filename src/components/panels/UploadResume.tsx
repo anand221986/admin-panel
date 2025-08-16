@@ -51,43 +51,63 @@ export default function UploadResume({
     setResumeFiles(files);
   };
 
-  const handleResumeSubmit = async (e: React.FormEvent) => {
+   const handleResumeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!resumeFiles) {
-      setResumeError("Please choose at least one file to upload.");
-      return;
-    }
+  if (!resumeFiles) {
+    setResumeError("Please choose at least one file to upload.");
+    return;
+  }
 
-    const formData = new FormData();
-    Array.from(resumeFiles).forEach((file) => {
-      formData.append("resumes", file);
-    });
+  const formData = new FormData();
+  Array.from(resumeFiles).forEach((file) => {
+    formData.append("resumes", file);
+  });
 
-    if (jobId) {
-      formData.append("job_id", jobId.toString());
-    }
+  if (jobId) {
+    formData.append("job_id", jobId.toString());
+  }
 
-    try {
-      setResumeUpload(true);
-      setProgress(0);
-      await axios.post(`${API_BASE_URL}/candidate/uploadPdf`, formData, {
+  try {
+    setResumeUpload(true);
+    setProgress(0);
+    const response = await axios.post(
+      `${API_BASE_URL}/candidate/uploadPdf`,
+      formData,
+      {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (evt) => {
           const pct = Math.round((evt.loaded * 100) / (evt.total || 1));
           setProgress(pct);
         },
-      });
-      toast.success("Files Uploaded!");
+      }
+    );
+
+    const { results } = response.data;
+
+    const failedFiles = results.filter((r: any) => !r.success);
+    const successFiles = results.filter((r: any) => r.success);
+
+    if (successFiles.length) {
+      toast.success(`${successFiles.length} file(s) uploaded successfully.`);
+    }
+
+    failedFiles.forEach((file: any) => {
+      toast.error(`${file.fileName} - ${file.message}`);
+    });
+
+    // Only reset when all passed
+    if (failedFiles.length === 0) {
       resetForm();
       onSuccess();
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Upload Failed!");
-      setResumeError(err.response?.data?.message || "Upload failed.");
-    } finally {
-      setResumeUpload(false);
     }
-  };
+  } catch (err: any) {
+    console.error(err);
+    toast.error("Upload Failed!");
+    setResumeError(err.response?.data?.message || "Upload failed.");
+  } finally {
+    setResumeUpload(false);
+  }
+};
 
   const resetForm = () => {
     setResumeFiles(null);

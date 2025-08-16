@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
+import axios from "axios";
 import {
   Select,
   SelectTrigger,
@@ -21,21 +23,71 @@ import {
   Underline,
   Highlighter,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export interface Person {
-  id: string;
-  name: string;
+  candidateId: number;
+  candidateName: string;
 }
 
 interface EmailPanelProps {
   candidate: Person;
+  refreshTrigger?: () => void;
 }
 
 export function EmailPanel({ candidate }: EmailPanelProps) {
-  const toRecipients = [candidate.name];
+  const toRecipients = [candidate.candidateName];
+   const [emailSubject, setEmailSubject] = useState("");
+   const [emailContent, setEmailContent] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [refreshTrigger, setRefreshTrigger] = useState<() => void>(() => () => { });
+   const handleSave = async () => {
+    if (!emailSubject.trim()) {
+      toast.error("Please enter email subject line.");
+      return;
 
+    }
+    if (!emailContent.trim()) {
+      toast.error("Please provide email Description.");
+      return;
+
+    }
+   setSaving(true);
+    try {
+      const payload = {
+        candidate_id: candidate.candidateId,
+        emailSubject: emailSubject,
+        emailDescription: emailContent,
+        author_id: 1
+      };
+      const res = await axios.post(
+        `http://13.51.235.31:3000/candidate/sendCandidateEmail`,
+        payload
+      );
+      if (res.data.status) {
+        toast.success(res.data.message || "email Send successfully.");
+         refreshTrigger?.();
+      } else {
+        toast.error(res.data.message || "Failed to send email.");
+      }
+    } catch (err: any) {
+      console.error("Error sending email", err);
+      toast.error(
+        err.response?.data?.message || err.message || "Server error."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <div className="space-y-4 p-6 bg-white rounded-lg shadow mb-4">
+            <div className="flex items-center space-x-2">
+        <span className="font-normal">From</span>
+        <div className="flex-1 flex items-center flex-wrap gap-2 bg-gray-50 p-2 rounded-lg">Recruiter1@a1selectors.com
+        </div>
+      </div>
+
+
       <div className="flex items-center space-x-2">
         <span className="font-normal">To</span>
         <div className="flex-1 flex items-center flex-wrap gap-2 bg-gray-50 p-2 rounded-lg">
@@ -45,17 +97,19 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
               className="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-sm"
             >
               {n}
-              <span className="ml-1 cursor-pointer">×</span>
+              {/* <span className="ml-1 cursor-pointer">×</span> */}
             </span>
           ))}
-          <button className="text-sm text-gray-400">+ add more</button>
+          {/* <button className="text-sm text-gray-400">+ add more</button> */}
         </div>
-        <button className="text-sm text-gray-600">CC</button>
-        <button className="text-sm text-gray-600">BCC</button>
+        {/* <button className="text-sm text-gray-600">CC</button>
+        <button className="text-sm text-gray-600">BCC</button> */}
       </div>
 
       <div className="flex items-center justify-between">
-        <Input className="flex-1 mr-4" placeholder="Subject" readOnly />
+        <Input className="flex-1 mr-4" placeholder="Subject" value={emailSubject}  onChange={(e) => {
+          setEmailSubject(e.target.value)
+        }} />
         <Select defaultValue="">
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Select template" />
@@ -67,7 +121,10 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
         </Select>
       </div>
 
-      <Textarea placeholder="Compose your email..." rows={6} readOnly />
+      <Textarea placeholder="Compose your email..." rows={6}  value={emailContent}  onChange={(e) => {
+          setEmailContent(e.target.value)
+        }
+        } />
 
       <div className="flex items-center space-x-3 border-t border-b border-gray-200 py-2 text-gray-600">
         <Select defaultValue="div">
@@ -116,7 +173,7 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
       </div>
 
       <div className="flex items-center space-x-4">
-        <Button className="bg-blue-600 text-white">
+        <Button className="bg-blue-600 text-white"   onClick={handleSave}>
           Send
           <ChevronDown />
         </Button>

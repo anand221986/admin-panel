@@ -10,17 +10,12 @@ import {
   Search,
   Filter,
   Building2,
-  DollarSign,
   GraduationCap,
   Star,
   Plus,
   Check,
   X,
-  ArrowUpCircle,
-  ArrowUp,
   ChevronUp,
-  ExternalLink,
-  Paperclip,
   FileText,
 } from "lucide-react";
 import {
@@ -43,13 +38,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
 import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateFieldsModal";
 import AssignToJobModal from "@/components/modals/AssigntoJobModal";
-
 import {
   ALL_COLUMNS,
   TABS,
   getStatusColor,
   getRecruiterStatusColor,
-  getHMApprovalColor,
 } from "@/lib/candidate-config";
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
@@ -73,8 +66,6 @@ const RECRUITER_STATUSES = [
   "Recommended",
   "Not Suitable",
 ];
-
-const HM_APPROVAL_STATUSES = ["Pending", "Approved", "Rejected"];
 
 const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
 
@@ -332,16 +323,30 @@ export default function CandidateViewList({
 
   const handleDelete = async () => {
     if (!selected.size) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selected.size} candidate(s)?`
+    );
+    if (!confirmed) return;
+
+    const originalCandidates = [...localCandidates];
+    const originalSelected = new Set(selected);
+
+    setLocalCandidates((prev) =>
+      prev.filter((c) => !originalSelected.has(c.id))
+    );
+    setSelected(new Set());
+
     try {
       await axios.post(`${API_BASE_URL}/candidate/bulk-delete`, {
-        data: { ids: [...selected] },
+        data: { ids: [...originalSelected] },
       });
-      setLocalCandidates((prev) => prev.filter((c) => !selected.has(c.id)));
-      setSelected(new Set());
-      toast.success("Deleted!");
+      toast.success(`${originalSelected.size} candidate(s) deleted.`);
     } catch (err) {
       console.error("Failed to delete candidates", err);
-      toast.error("Could not delete candidates");
+      toast.error("Could not delete. Reverting changes.");
+      setLocalCandidates(originalCandidates);
+      setSelected(originalSelected);
     }
   };
 
@@ -358,13 +363,19 @@ export default function CandidateViewList({
     field: keyof CandidateForm,
     value: any
   ) => {
+    const originalCandidates = [...localCandidates];
+
+    setLocalCandidates((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    );
+
     try {
       await axios.put(`${API_BASE_URL}/candidate/${id}`, { [field]: value });
-      fetchCandidates();
       toast.success(`Candidate's ${field.replace(/_/g, " ")} updated.`);
     } catch (err) {
       console.error(`Failed to update ${field}`, err);
-      toast.error(`Could not update ${field}.`);
+      toast.error(`Could not update ${field}. Reverting change.`);
+      setLocalCandidates(originalCandidates);
     }
   };
 
@@ -374,8 +385,10 @@ export default function CandidateViewList({
     field: "status" | "recruiter_status" | "hmapproval",
     value: string
   ) => {
+    const originalCandidates = JSON.parse(JSON.stringify(localCandidates));
+
     setLocalCandidates((prev) =>
-      (prev || []).map((candidate) => {
+      prev.map((candidate) => {
         if (candidate.id === candidateId) {
           const updatedJobs = (candidate.jobs_assigned || []).map((job) =>
             job.job_id === jobId ? { ...job, [field]: value } : job
@@ -394,9 +407,9 @@ export default function CandidateViewList({
         value,
       });
       toast.success("Stage updated successfully.");
-      fetchCandidates();
     } catch (err) {
       toast.error("Failed to update stage. Reverting changes.");
+      setLocalCandidates(originalCandidates);
     }
   };
 
@@ -557,8 +570,6 @@ export default function CandidateViewList({
                     } catch {}
 
                     const isExpanded = expandedCandidates.has(candidate.id);
-                    const jobs = candidate.jobs_assigned || [];
-                    const jobsToShow = isExpanded ? jobs : jobs.slice(0, 1);
 
                     return (
                       <TableRow
@@ -625,7 +636,7 @@ export default function CandidateViewList({
                                     className="mb-3 last:mb-0"
                                   >
                                     <div className="flex items-center gap-3">
-                                      <div className="min-w-[150px] text-sm font-medium text-gray-700 cursor-pointer">
+                                      <div className="min-w-[180px] text-sm font-medium text-gray-700 cursor-pointer">
                                         {job.job_title}
                                       </div>
 
@@ -637,7 +648,7 @@ export default function CandidateViewList({
                                             className="h-auto p-2 text-xs min-w-[120px] justify-start"
                                           >
                                             <span
-                                              className={`w-2 h-2 rounded-full ${getStatusColor(
+                                              className={`mr-2 w-2 h-2 rounded-full ${getStatusColor(
                                                 job.status
                                               )}`}
                                             />
@@ -671,7 +682,7 @@ export default function CandidateViewList({
                                             className="h-auto p-2 text-xs min-w-[150px] justify-start"
                                           >
                                             <span
-                                              className={`w-2 h-2 rounded-full ${getRecruiterStatusColor(
+                                              className={`mr-2 w-2 h-2 rounded-full ${getRecruiterStatusColor(
                                                 job.recruiter_status
                                               )}`}
                                             />
@@ -687,40 +698,6 @@ export default function CandidateViewList({
                                                   candidate.id,
                                                   job.job_id,
                                                   "recruiter_status",
-                                                  s
-                                                )
-                                              }
-                                            >
-                                              {s}
-                                            </DropdownMenuItem>
-                                          ))}
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-auto p-2 text-xs min-w-[120px] justify-start"
-                                          >
-                                            <span
-                                              className={`w-2 h-2 rounded-full ${getHMApprovalColor(
-                                                job.hmapproval
-                                              )}`}
-                                            />
-                                            {job.hmapproval}
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                          {HM_APPROVAL_STATUSES.map((s) => (
-                                            <DropdownMenuItem
-                                              key={s}
-                                              onSelect={() =>
-                                                handleJobAssignmentUpdate(
-                                                  candidate.id,
-                                                  job.job_id,
-                                                  "hmapproval",
                                                   s
                                                 )
                                               }

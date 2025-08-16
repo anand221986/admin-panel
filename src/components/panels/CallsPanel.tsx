@@ -23,10 +23,12 @@ import {
   Paperclip,
   Mic,
 } from "lucide-react";
+import { toast } from "sonner";
+import axios from "axios";
 
 export interface Person {
-  id: string;
-  name: string;
+ candidateId: number;
+  candidateName: string;
 }
 
 interface CallsPanelProps {
@@ -51,8 +53,9 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
   const [endTime, setEndTime] = useState<string>("");
   const [meetingType, setMeetingType] = useState<string>("");
   const [callOutcome, setCallOutcome] = useState<string>("");
+   const [saving, setSaving] = useState(false);
   const [associatedWith, setAssociatedWith] = useState<string[]>([
-    candidate.name,
+    candidate.candidateName,
   ]);
   const [notes, setNotes] = useState<string>("");
   const [template, setTemplate] = useState<string>("");
@@ -60,13 +63,51 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
   const removeAssoc = (name: string) => {
     setAssociatedWith((prev) => prev.filter((n) => n !== name));
   };
+    const handleSend = async() => {
+       if (!notes.trim()) {
+      toast.error("Please enter call notes.");
+      return;
+
+    }
+    setSaving(true);
+    try {
+       const payload = {
+        candidate_id: candidate.candidateId,
+        meeting_date: date,
+        meeting_type:meetingType,
+        call_outcome:callOutcome,
+        call_notes: notes,
+        author_id: 1
+      };
+      const res = await axios.post(
+        `http://13.51.235.31:3000/candidate/createCandidateCallLog`,
+        payload
+      );
+      if (res.data.status) {
+        toast.success(res.data.message || "Sms Send successfully.");
+         //refreshTrigger?.();
+      } else {
+        toast.error(res.data.message || "Failed to send sms.");
+      }
+    } catch (err: any) {
+      console.error("Error sending sms", err);
+      toast.error(
+        err.response?.data?.message || err.message || "Server error."
+      );
+    } finally {
+      setSaving(false);
+    }
+    // onSendSMS?.({ to: recipients, message, template });
+    
+  };
+
 
   return (
     <div className="space-y-4 p-6 bg-white rounded-lg shadow mb-4">
       <div className="flex items-center justify-between bg-gray-50 p-3 rounded">
         <div className="flex items-center space-x-2 text-gray-700">
           <PhoneCall className="w-5 h-5" />
-          <span className="font-medium">{candidate.name} logged a call</span>
+          <span className="font-medium">Recruiter logged a call</span>
         </div>
         <div className="flex items-center space-x-8 text-sm">
           <div className="text-right">
@@ -151,10 +192,10 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
           <button
             className="text-sm text-gray-400"
             onClick={() =>
-              setAssociatedWith((prev) => [...prev, candidate.name])
+              setAssociatedWith((prev) => [...prev, candidate.candidateName])
             }
           >
-            + add more
+            {/* + add more */}
           </button>
         </div>
       </div>
@@ -213,18 +254,19 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
 
         <Button
           className="bg-blue-600 text-white"
-          onClick={() =>
-            onLogCall?.({
-              date: new Date(date),
-              startTime,
-              endTime,
-              meetingType,
-              callOutcome,
-              associatedWith,
-              notes,
-              template,
-            })
-          }
+          onClick={handleSend}
+          // onClick={() =>
+          //   onLogCall?.({
+          //     date: new Date(date),
+          //     startTime,
+          //     endTime,
+          //     meetingType,
+          //     callOutcome,
+          //     associatedWith,
+          //     notes,
+          //     template,
+          //   })
+          // }
         >
           Log call
         </Button>

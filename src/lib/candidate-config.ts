@@ -21,9 +21,6 @@ export const ALL_COLUMNS: ColumnConfig[] = [
 
 export const TABS = [
   ["All", "all"] as const,
-  ["Status", "status"] as const,
-  ["Recruiter", "recruiter"] as const,
-  ["HM Approval", "hm"] as const,
   ["Date Added", "updated_at"] as const,
   ["Address", "address"] as const
 ];

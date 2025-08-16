@@ -8,10 +8,11 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-
+import { toast } from "sonner";
+import axios from "axios";
 export interface Person {
-  id: string;
-  name: string;
+candidateId: number;
+  candidateName: string;
 }
 
 interface TextPanelProps {
@@ -24,15 +25,47 @@ interface TextPanelProps {
 }
 
 export function TextPanel({ candidate, onSendSMS }: TextPanelProps) {
-  const [recipients, setRecipients] = useState<string[]>([candidate.name]);
+  const [recipients, setRecipients] = useState<string[]>([candidate.candidateName]);
   const [message, setMessage] = useState<string>("");
   const [template, setTemplate] = useState<string>("");
+   const [saving, setSaving] = useState(false);
 
   const removeRecipient = (name: string) => {
     setRecipients((prev) => prev.filter((n) => n !== name));
   };
 
-  const handleSend = () => {
+  const handleSend = async() => {
+
+       if (!message.trim()) {
+      toast.error("Please enter email subject line.");
+      return;
+
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        candidate_id: candidate.candidateId,
+        TextMessage: message,
+        author_id: 1
+      };
+      const res = await axios.post(
+        `http://13.51.235.31:3000/candidate/sendCandidateText`,
+        payload
+      );
+      if (res.data.status) {
+        toast.success(res.data.message || "Sms Send successfully.");
+         //refreshTrigger?.();
+      } else {
+        toast.error(res.data.message || "Failed to send sms.");
+      }
+    } catch (err: any) {
+      console.error("Error sending sms", err);
+      toast.error(
+        err.response?.data?.message || err.message || "Server error."
+      );
+    } finally {
+      setSaving(false);
+    }
     onSendSMS?.({ to: recipients, message, template });
   };
 
@@ -47,20 +80,20 @@ export function TextPanel({ candidate, onSendSMS }: TextPanelProps) {
               className="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-sm"
             >
               {name}
-              <span
+              {/* <span
                 className="ml-1 cursor-pointer"
                 onClick={() => removeRecipient(name)}
               >
                 ×
-              </span>
+              </span> */}
             </span>
           ))}
-          <button
+          {/* <button
             className="text-sm text-gray-400"
             onClick={() => setRecipients((prev) => [...prev, "New Recipient"])}
           >
             + add more
-          </button>
+          </button> */}
         </div>
       </div>
 
