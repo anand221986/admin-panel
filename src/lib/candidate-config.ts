@@ -5,7 +5,7 @@ export interface ColumnConfig {
 
 export const ALL_COLUMNS: ColumnConfig[] = [
   { key: "name", label: "Name" },
-  { key: "job_and_stage", label: "Job and Stage" },
+  { key: "job_and_stage", label: "Job - Candidate Stage - Recruiter Stage" },
   { key: "notice_period", label: "Notice Period"},
   { key: "current_ctc", label: "Current CTC" },
   { key: "expected_ctc", label: "Expected CTC" },
@@ -21,9 +21,6 @@ export const ALL_COLUMNS: ColumnConfig[] = [
 
 export const TABS = [
   ["All", "all"] as const,
-  ["Status", "status"] as const,
-  ["Recruiter", "recruiter"] as const,
-  ["HM Approval", "hm"] as const,
   ["Date Added", "updated_at"] as const,
   ["Address", "address"] as const
 ];

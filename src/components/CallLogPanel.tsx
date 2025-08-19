@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 
-const API_BASE = "http://13.51.235.31:3000";
+const API_BASE = "http://16.171.117.2:3000";
 
 interface CallEntry {
   id: number;

@@ -47,7 +47,7 @@ export function TasksPanel({
         task: taskName,
       };
       const res = await axios.post(
-        `http://13.51.235.31:3000/candidate/addCandidateTask`,
+        `http://16.171.117.2:3000/candidate/addCandidateTask`,
         payload
       );
       if (res.data.status) {

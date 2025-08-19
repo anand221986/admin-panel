@@ -25,8 +25,14 @@ export default function CandidateDetailsTabs({
   const [primaryTab, setPrimaryTab] = useState<string>("notes");
   const [secondaryTab, setSecondaryTab] = useState<string>("activities");
   const [refreshFlag, setRefreshFlag] = useState(false);
-  const handleTaskAdded = () => setRefreshFlag((f) => !f);
+  const [activitiesReloadKey, setActivitiesReloadKey] = useState(0);
+  const [activitiesRefreshKey, setActivitiesRefreshKey] = useState(0);
 
+const handleAdded = () => {
+  setRefreshFlag((f) => !f);           // trigger useEffect
+  setActivitiesReloadKey((k) => k+1);  // force remount child component
+  setActivitiesRefreshKey(prev => prev + 1);
+};
   return (
     <div className="p-3 w-full space-y-6">
       <Tabs
@@ -55,26 +61,30 @@ export default function CandidateDetailsTabs({
         </TabsList>
 
         <TabsContent value="notes">
-          <NotesPanel candidateId={candidate.id} authorId={1} />
+          <NotesPanel candidateId={candidate.id} authorId={1} refreshTrigger={handleAdded}  />
         </TabsContent>
         <TabsContent value="tasks">
           <TasksPanel
             candidateId={candidate.id}
             authorId={1}
-            onTaskAdded={handleTaskAdded}
+            onTaskAdded={handleAdded}
           />
         </TabsContent>
         <TabsContent value="schedule">
           <SchedulePanel   candidate={{
     candidateId: candidate.id,
     candidateName: `${candidate.first_name} ${candidate.last_name}`,
-  }} />
+  }} 
+  
+  refreshTrigger={handleAdded}/>
         </TabsContent>
         <TabsContent value="email">
           <EmailPanel candidate={{
     candidateId: candidate.id,
     candidateName: `${candidate.first_name} ${candidate.last_name}`,
-  }} />
+  }}  
+  
+  refreshTrigger={handleAdded}/>
         </TabsContent>
         <TabsContent value="calls">
           <CallsPanel candidate={{
@@ -120,7 +130,7 @@ export default function CandidateDetailsTabs({
 
         <TabsContent value="activities">
           {/* <ActivitiesPanel activities={candidate.activities || []} /> */}
-          <ActivitiesPanel candidateId={candidate.id} />
+          <ActivitiesPanel candidateId={candidate.id} reloadKey={activitiesRefreshKey} />
         </TabsContent>
         <TabsContent value="files">
           <FilesPanel candidateId={candidate.id}  />
@@ -132,7 +142,7 @@ export default function CandidateDetailsTabs({
           <ConversationsPanel conversations={candidate.conversations} />
         </TabsContent>
         <TabsContent value="calls_list">
-          <CallsListPanel calls={candidate.calls} />
+          <CallsListPanel calls={candidate.calls} candidateId={candidate.id} />
         </TabsContent>
         <TabsContent value="Notes_list">
           <NotesListPanel candidateId={candidate.id} authorId={1} />

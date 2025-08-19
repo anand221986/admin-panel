@@ -6,21 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { FilterColumnsModal } from "@/components/modals/FilterCoulmnModal";
 import AddCandidateModal from "@/components/modals/AddCandidateModal";
+import { SiWhatsapp } from "react-icons/si";
 import {
   Search,
   Filter,
   Building2,
-  DollarSign,
   GraduationCap,
   Star,
   Plus,
   Check,
   X,
-  ArrowUpCircle,
-  ArrowUp,
   ChevronUp,
-  ExternalLink,
-  Paperclip,
   FileText,
 } from "lucide-react";
 import {
@@ -43,40 +39,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
 import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateFieldsModal";
 import AssignToJobModal from "@/components/modals/AssigntoJobModal";
-
 import {
   ALL_COLUMNS,
   TABS,
   getStatusColor,
   getRecruiterStatusColor,
-  getHMApprovalColor,
 } from "@/lib/candidate-config";
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
-const API_BASE_URL = "http://13.51.235.31:3000";
+const API_BASE_URL = "http://16.171.117.2:3000";
 const FILE_SERVER_URL = "http://13.51.235.31";
 
-const CANDIDATE_STATUSES = [
-  "Sourced",
-  "Application",
-  "Screening",
-  "Interview",
-  "Offer",
-  "Hired",
-  "Rejected",
-];
-
-const RECRUITER_STATUSES = [
-  "New Application",
-  "Initial Review",
-  "Screening Complete",
-  "Recommended",
-  "Not Suitable",
-];
-
-const HM_APPROVAL_STATUSES = ["Pending", "Approved", "Rejected"];
-
 const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
+
+interface StatusOption {
+  id: number;
+  name: string;
+  type: "candidate" | "recruiter";
+  is_active: boolean;
+  color: string;
+}
 
 interface JobAssignment {
   job_id: number;
@@ -245,10 +227,44 @@ export default function CandidateViewList({
   const [expandedCandidates, setExpandedCandidates] = useState<Set<number>>(
     new Set()
   );
+  const [candidateStatuses, setCandidateStatuses] = useState<StatusOption[]>(
+    []
+  );
+  const [recruiterStatuses, setRecruiterStatuses] = useState<StatusOption[]>(
+    []
+  );
 
   useEffect(() => {
     setLocalCandidates(candidates);
   }, [candidates]);
+
+  useEffect(() => {
+    const fetchAllStatuses = async () => {
+      try {
+        const response = await axios.get<{ result: StatusOption[] }>(
+          `${API_BASE_URL}/candidate/getAllStatus`
+        );
+        if (response.data && Array.isArray(response.data.result)) {
+          const allStatuses = response.data.result;
+          const activeStatuses = allStatuses.filter(
+            (status) => status.is_active
+          );
+
+          setCandidateStatuses(
+            activeStatuses.filter((status) => status.type === "candidate")
+          );
+          setRecruiterStatuses(
+            activeStatuses.filter((status) => status.type === "recruiter")
+          );
+        }
+      } catch (error) {
+        console.error("Failed to fetch statuses", error);
+        toast.error("Could not load status options.");
+      }
+    };
+
+    fetchAllStatuses();
+  }, []);
 
   const toggleCandidateJobs = (candidateId: number) => {
     setExpandedCandidates((prev) => {
@@ -332,16 +348,28 @@ export default function CandidateViewList({
 
   const handleDelete = async () => {
     if (!selected.size) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selected.size} candidate(s)?`
+    );
+    if (!confirmed) return;
+
+    const originalCandidates = [...localCandidates];
+    const originalSelected = new Set(selected);
+    setLocalCandidates((prev) =>
+      prev.filter((c) => !originalSelected.has(c.id))
+    );
+    setSelected(new Set());
+
     try {
       await axios.post(`${API_BASE_URL}/candidate/bulk-delete`, {
-        data: { ids: [...selected] },
+        data: { ids: [...originalSelected] },
       });
-      setLocalCandidates((prev) => prev.filter((c) => !selected.has(c.id)));
-      setSelected(new Set());
-      toast.success("Deleted!");
+      toast.success(`${originalSelected.size} candidate(s) deleted.`);
     } catch (err) {
       console.error("Failed to delete candidates", err);
-      toast.error("Could not delete candidates");
+      toast.error("Could not delete. Reverting changes.");
+      setLocalCandidates(originalCandidates);
+      setSelected(originalSelected);
     }
   };
 
@@ -358,13 +386,18 @@ export default function CandidateViewList({
     field: keyof CandidateForm,
     value: any
   ) => {
+    const originalCandidates = [...localCandidates];
+    setLocalCandidates((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    );
+
     try {
       await axios.put(`${API_BASE_URL}/candidate/${id}`, { [field]: value });
-      fetchCandidates();
       toast.success(`Candidate's ${field.replace(/_/g, " ")} updated.`);
     } catch (err) {
       console.error(`Failed to update ${field}`, err);
-      toast.error(`Could not update ${field}.`);
+      toast.error(`Could not update ${field}. Reverting change.`);
+      setLocalCandidates(originalCandidates);
     }
   };
 
@@ -374,8 +407,9 @@ export default function CandidateViewList({
     field: "status" | "recruiter_status" | "hmapproval",
     value: string
   ) => {
+    const originalCandidates = JSON.parse(JSON.stringify(localCandidates));
     setLocalCandidates((prev) =>
-      (prev || []).map((candidate) => {
+      prev.map((candidate) => {
         if (candidate.id === candidateId) {
           const updatedJobs = (candidate.jobs_assigned || []).map((job) =>
             job.job_id === jobId ? { ...job, [field]: value } : job
@@ -394,9 +428,9 @@ export default function CandidateViewList({
         value,
       });
       toast.success("Stage updated successfully.");
-      fetchCandidates();
     } catch (err) {
       toast.error("Failed to update stage. Reverting changes.");
+      setLocalCandidates(originalCandidates);
     }
   };
 
@@ -557,8 +591,9 @@ export default function CandidateViewList({
                     } catch {}
 
                     const isExpanded = expandedCandidates.has(candidate.id);
-                    const jobs = candidate.jobs_assigned || [];
-                    const jobsToShow = isExpanded ? jobs : jobs.slice(0, 1);
+                    const cleanedPhone = candidate.phone
+                      ? candidate.phone.replace(/[^0-9+]/g, "")
+                      : "";
 
                     return (
                       <TableRow
@@ -573,44 +608,60 @@ export default function CandidateViewList({
                             className="border-0 bg-gray-200 outline-none"
                           />
                         </TableCell>
-                        {visibleColumns.includes("name") && (
-                          <TableCell className="min-w-[200px] py-2">
-                            <CandidateActionsPopover
-                              candidate={candidate}
-                              fetchCandidates={fetchCandidates}
-                            >
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
-                                    {candidate.first_name?.toUpperCase()[0]}
-                                    {candidate.last_name?.toUpperCase()[0]}
-                                  </AvatarFallback>
-                                </Avatar>
 
-                                <button
-                                  onClick={() => {
-                                    setSelectedCandidate(candidate);
-                                    setProfileModalOpen(true);
-                                  }}
-                                  className="whitespace-nowrap text-sm font-medium text-slate-600 focus:outline-none hover:underline"
+                        <TableCell className="min-w-[200px] py-2">
+                          <CandidateActionsPopover
+                            candidate={candidate}
+                            fetchCandidates={fetchCandidates}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+                                  {candidate.first_name?.toUpperCase()[0]}
+                                  {candidate.last_name?.toUpperCase()[0]}
+                                </AvatarFallback>
+                              </Avatar>
+
+                              <button
+                                onClick={() => {
+                                  setSelectedCandidate(candidate);
+                                  setProfileModalOpen(true);
+                                }}
+                                className="whitespace-nowrap text-sm font-medium text-slate-600 focus:outline-none hover:underline"
+                              >
+                                {candidate.first_name} {candidate.last_name}
+                              </button>
+
+                              {candidate.resume_url && (
+                                <a
+                                  href={`${FILE_SERVER_URL}/ats-api/uploads/${candidate.resume_url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center p-1 text-gray-500 hover:text-blue-600 transition-colors"
+                                  title="View Resume in new tab"
                                 >
-                                  {candidate.first_name} {candidate.last_name}
-                                </button>
-                                {candidate.resume_url && (
-                                  <a
-                                    href={`${FILE_SERVER_URL}/ats-api/uploads/${candidate.resume_url}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center justify-center p-2 text-gray-500 hover:text-blue-600 transition-colors"
-                                    title="View Resume in new tab"
-                                  >
-                                    <FileText className="h-4 w-4" />
-                                  </a>
-                                )}
-                              </div>
-                            </CandidateActionsPopover>
-                          </TableCell>
-                        )}
+                                  <FileText className="h-4 w-4" />
+                                </a>
+                              )}
+
+                              {candidate.phone && (
+                                <a
+                                  href={`https://wa.me/${cleanedPhone}?text=Hello%20${
+                                    candidate.first_name +
+                                    " " +
+                                    candidate.last_name
+                                  },%20I%20am%20from%20XBeesHire`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center p-1 text-gray-500 hover:text-green-600 transition-colors"
+                                  title="Chat on WhatsApp"
+                                >
+                                  <SiWhatsapp className="h-4 w-4 text-green-600" />
+                                </a>
+                              )}
+                            </div>
+                          </CandidateActionsPopover>
+                        </TableCell>
 
                         {visibleColumns.includes("job_and_stage") && (
                           <TableCell className="min-w-[400px] py-3">
@@ -619,144 +670,149 @@ export default function CandidateViewList({
                                 {(isExpanded
                                   ? candidate.jobs_assigned
                                   : (candidate.jobs_assigned || []).slice(0, 1)
-                                ).map((job, index) => (
-                                  <div
-                                    key={job.job_id}
-                                    className="mb-3 last:mb-0"
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="min-w-[150px] text-sm font-medium text-gray-700 cursor-pointer">
-                                        {job.job_title}
-                                      </div>
+                                ).map((job, index) => {
+                                  const currentCandidateStatus =
+                                    candidateStatuses.find(
+                                      (s) => s.name === job.status
+                                    );
+                                  const currentRecruiterStatus =
+                                    recruiterStatuses.find(
+                                      (s) => s.name === job.recruiter_status
+                                    );
 
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-auto p-2 text-xs min-w-[120px] justify-start"
-                                          >
-                                            <span
-                                              className={`w-2 h-2 rounded-full ${getStatusColor(
-                                                job.status
-                                              )}`}
-                                            />
-                                            {job.status}
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                          {CANDIDATE_STATUSES.map((s) => (
-                                            <DropdownMenuItem
-                                              key={s}
-                                              onSelect={() =>
-                                                handleJobAssignmentUpdate(
-                                                  candidate.id,
-                                                  job.job_id,
-                                                  "status",
-                                                  s
-                                                )
-                                              }
+                                  return (
+                                    <div
+                                      key={job.job_id}
+                                      className="mb-3 last:mb-0"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className="min-w-[180px] text-sm font-medium text-gray-700 cursor-pointer">
+                                          {job.job_title}
+                                        </div>
+
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              className="h-auto p-2 text-xs min-w-[120px] justify-start"
                                             >
-                                              {s}
-                                            </DropdownMenuItem>
-                                          ))}
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-auto p-2 text-xs min-w-[150px] justify-start"
-                                          >
-                                            <span
-                                              className={`w-2 h-2 rounded-full ${getRecruiterStatusColor(
-                                                job.recruiter_status
-                                              )}`}
-                                            />
-                                            {job.recruiter_status}
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                          {RECRUITER_STATUSES.map((s) => (
-                                            <DropdownMenuItem
-                                              key={s}
-                                              onSelect={() =>
-                                                handleJobAssignmentUpdate(
-                                                  candidate.id,
-                                                  job.job_id,
-                                                  "recruiter_status",
-                                                  s
-                                                )
-                                              }
-                                            >
-                                              {s}
-                                            </DropdownMenuItem>
-                                          ))}
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-auto p-2 text-xs min-w-[120px] justify-start"
-                                          >
-                                            <span
-                                              className={`w-2 h-2 rounded-full ${getHMApprovalColor(
-                                                job.hmapproval
-                                              )}`}
-                                            />
-                                            {job.hmapproval}
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                          {HM_APPROVAL_STATUSES.map((s) => (
-                                            <DropdownMenuItem
-                                              key={s}
-                                              onSelect={() =>
-                                                handleJobAssignmentUpdate(
-                                                  candidate.id,
-                                                  job.job_id,
-                                                  "hmapproval",
-                                                  s
-                                                )
-                                              }
-                                            >
-                                              {s}
-                                            </DropdownMenuItem>
-                                          ))}
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-
-                                      {index === 0 &&
-                                        (candidate.jobs_assigned || []).length >
-                                          1 && (
-                                          <button
-                                            onClick={() =>
-                                              toggleCandidateJobs(candidate.id)
-                                            }
-                                            className="text-sm font-medium text-gray-800 hover:underline whitespace-nowrap"
-                                          >
-                                            {isExpanded ? (
-                                              <ChevronUp
-                                                size={20}
-                                                color="black"
-                                                strokeWidth={1.5}
+                                              <span
+                                                className="mr-2 w-2 h-2 rounded-full"
+                                                style={{
+                                                  backgroundColor:
+                                                    currentCandidateStatus?.color ||
+                                                    "#94a3b8",
+                                                }}
                                               />
-                                            ) : (
-                                              `+${
-                                                (candidate.jobs_assigned || [])
-                                                  .length - 1
-                                              }`
-                                            )}
-                                          </button>
-                                        )}
+                                              {job.status}
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent>
+                                            {candidateStatuses.map((status) => (
+                                              <DropdownMenuItem
+                                                key={status.id}
+                                                onSelect={() =>
+                                                  handleJobAssignmentUpdate(
+                                                    candidate.id,
+                                                    job.job_id,
+                                                    "status",
+                                                    status.name
+                                                  )
+                                                }
+                                              >
+                                                <div className="flex items-center">
+                                                  <span
+                                                    className="mr-2 h-2 w-2 rounded-full"
+                                                    style={{
+                                                      backgroundColor:
+                                                        status.color,
+                                                    }}
+                                                  />
+                                                  {status.name}
+                                                </div>
+                                              </DropdownMenuItem>
+                                            ))}
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              className="h-auto p-2 text-xs min-w-[150px] justify-start"
+                                            >
+                                              <span
+                                                className="mr-2 w-2 h-2 rounded-full"
+                                                style={{
+                                                  backgroundColor:
+                                                    currentRecruiterStatus?.color ||
+                                                    "#94a3b8",
+                                                }}
+                                              />
+                                              {job.recruiter_status}
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent>
+                                            {recruiterStatuses.map((status) => (
+                                              <DropdownMenuItem
+                                                key={status.id}
+                                                onSelect={() =>
+                                                  handleJobAssignmentUpdate(
+                                                    candidate.id,
+                                                    job.job_id,
+                                                    "recruiter_status",
+                                                    status.name
+                                                  )
+                                                }
+                                              >
+                                                <div className="flex items-center">
+                                                  <span
+                                                    className="mr-2 h-2 w-2 rounded-full"
+                                                    style={{
+                                                      backgroundColor:
+                                                        status.color,
+                                                    }}
+                                                  />
+                                                  {status.name}
+                                                </div>
+                                              </DropdownMenuItem>
+                                            ))}
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+
+                                        {index === 0 &&
+                                          (candidate.jobs_assigned || [])
+                                            .length > 1 && (
+                                            <button
+                                              onClick={() =>
+                                                toggleCandidateJobs(
+                                                  candidate.id
+                                                )
+                                              }
+                                              className="text-sm font-medium text-gray-800 hover:underline whitespace-nowrap"
+                                            >
+                                              {isExpanded ? (
+                                                <ChevronUp
+                                                  size={20}
+                                                  color="black"
+                                                  strokeWidth={1.5}
+                                                />
+                                              ) : (
+                                                `+${
+                                                  (
+                                                    candidate.jobs_assigned ||
+                                                    []
+                                                  ).length - 1
+                                                }`
+                                              )}
+                                            </button>
+                                          )}
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             ) : (
                               <span className="text-slate-500 text-center">

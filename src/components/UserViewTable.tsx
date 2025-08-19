@@ -45,9 +45,9 @@ import {
   getRecruiterStatusColor,
   getHMApprovalColor,
 } from "@/lib/user-config";
-import { CandidateActionsPopover } from "./CandidateActionsPopover";
+import { UserActionsPopover } from "./userActionsPopover";
 
-const API_BASE_URL = "http://13.51.235.31:3000";
+const API_BASE_URL = "http://16.171.117.2:3000";
 
 interface CandidateForm {
   id: number;
@@ -82,6 +82,7 @@ interface CandidateForm {
 interface ParsedEducation {
   institution: string;
   degree: string;
+  candidateId:number;
 }
 
 const formatCandidateAddress = (address: string): string => {
@@ -435,7 +436,7 @@ export default function CandidateViewList({
                         </TableCell>
                         {visibleColumns.includes("name") && (
                           <TableCell className="min-w-[200px] py-2">
-                            <CandidateActionsPopover candidateId={candidate.id}>
+                            <UserActionsPopover candidateId={candidate.id}>
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                   <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
@@ -453,7 +454,7 @@ export default function CandidateViewList({
                                   {candidate.first_name} {candidate.last_name}
                                 </button>
                               </div>
-                            </CandidateActionsPopover>
+                            </UserActionsPopover>
                           </TableCell>
                         )}
                         
@@ -704,6 +705,7 @@ export default function CandidateViewList({
         open={isProfileModalOpen}
         onOpenChange={setProfileModalOpen}
         candidate={selectedCandidate}
+        fetchCandidates={fetchCandidates}
       />
     </div>
   );

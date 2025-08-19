@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import axios from "axios";
 
-const API_BASE_URL = "http://13.51.235.31:3000";
+const API_BASE_URL = "http://16.171.117.2:3000";
 
 export default function Signup() {
   const navigate = useNavigate();

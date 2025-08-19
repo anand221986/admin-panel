@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,17 +11,15 @@ import { MinusCircle, ChevronDown } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 
-const API_BASE_URL = "http://13.51.235.31:3000";
+const API_BASE_URL = "http://16.171.117.2:3000";
 
-const JOB_PIPELINE_STAGES = [
-  "Sourced",
-  "Application",
-  "Screening",
-  "Interview",
-  "Offer",
-  "Hired",
-  "Rejected",
-];
+interface StatusOption {
+  id: number;
+  name: string;
+  type: "candidate" | "recruiter";
+  is_active: boolean;
+  color: string;
+}
 
 interface JobAssignment {
   job_id: number;
@@ -43,10 +41,34 @@ export default function JobsCard({
   onAddJob,
 }: JobsCardProps) {
   const [localJobs, setLocalJobs] = useState<JobAssignment[]>(jobs);
+  const [jobPipelineStages, setJobPipelineStages] = useState<StatusOption[]>(
+    []
+  );
 
   useEffect(() => {
     setLocalJobs(jobs);
   }, [jobs]);
+
+  useEffect(() => {
+    const fetchJobStatuses = async () => {
+      try {
+        const response = await axios.get<{ result: StatusOption[] }>(
+          `${API_BASE_URL}/candidate/getAllStatus`
+        );
+        if (response.data && Array.isArray(response.data.result)) {
+          const activeCandidateStatuses = response.data.result.filter(
+            (status) => status.is_active && status.type === "candidate"
+          );
+          setJobPipelineStages(activeCandidateStatuses);
+        }
+      } catch (error) {
+        console.error("Failed to fetch job pipeline statuses:", error);
+        toast.error("Could not load job stages.");
+      }
+    };
+
+    fetchJobStatuses();
+  }, []);
 
   const handleJobStatusChange = async (
     jobId: number,
@@ -110,52 +132,77 @@ export default function JobsCard({
       </div>
       <div className="space-y-2 pt-2">
         {localJobs?.length > 0 ? (
-          localJobs.map((job) => (
-            <div
-              key={job.job_id}
-              className="p-2 border rounded-md flex items-center justify-between"
-            >
-              <div>
-                <p className="font-medium text-sm text-slate-800">
-                  {job.job_title}
-                </p>
-              </div>
-              <div className="flex items-center space-x-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="h-8 px-2 py-1 text-xs w-28 justify-between"
-                    >
-                      <span>{job.status}</span>
-                      <ChevronDown className="h-3.5 w-3.5 opacity-50" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {JOB_PIPELINE_STAGES.map((stage) => (
-                      <DropdownMenuItem
-                        key={stage}
-                        disabled={job.status === stage}
-                        onSelect={() =>
-                          handleJobStatusChange(job.job_id, "status", stage)
-                        }
+          localJobs.map((job) => {
+            const currentStatus = jobPipelineStages.find(
+              (s) => s.name === job.status
+            );
+
+            return (
+              <div
+                key={job.job_id}
+                className="p-2 border rounded-md flex items-center justify-between"
+              >
+                <div>
+                  <p className="font-medium text-sm text-slate-800">
+                    {job.job_title}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-8 px-2 py-1 text-xs w-32 justify-between"
                       >
-                        {stage}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-red-500 hover:bg-red-100 hover:text-red-600 h-8 w-8"
-                  onClick={() => handleRemoveJob(job.job_id)}
-                >
-                  <MinusCircle className="h-4 w-4" />
-                </Button>
+                        <div className="flex items-center">
+                          <span
+                            className="mr-2 h-2 w-2 rounded-full"
+                            style={{
+                              backgroundColor:
+                                currentStatus?.color || "#94a3b8",
+                            }}
+                          />
+                          <span>{job.status}</span>
+                        </div>
+                        <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {jobPipelineStages.map((stage) => (
+                        <DropdownMenuItem
+                          key={stage.id}
+                          disabled={job.status === stage.name}
+                          onSelect={() =>
+                            handleJobStatusChange(
+                              job.job_id,
+                              "status",
+                              stage.name
+                            )
+                          }
+                        >
+                          <div className="flex items-center">
+                            <span
+                              className="mr-2 h-2 w-2 rounded-full"
+                              style={{ backgroundColor: stage.color }}
+                            />
+                            {stage.name}
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:bg-red-100 hover:text-red-600 h-8 w-8"
+                    onClick={() => handleRemoveJob(job.job_id)}
+                  >
+                    <MinusCircle className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <p className="text-xs text-gray-400 text-center py-2">
             No jobs assigned.

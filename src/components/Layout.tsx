@@ -33,8 +33,18 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const menuItems = [
-  { title: "Dashboard", url: "/", icon: Home, roles: ["admin", "Interviewer","Recruiter"] },
-  { title: "Jobs", url: "/jobs", icon: Briefcase, roles: ["admin","Recruiter"] },
+  {
+    title: "Dashboard",
+    url: "/",
+    icon: Home,
+    roles: ["admin", "Interviewer", "Recruiter"],
+  },
+  {
+    title: "Jobs",
+    url: "/jobs",
+    icon: Briefcase,
+    roles: ["admin", "Recruiter"],
+  },
   {
     title: "Candidates",
     url: "/candidates",
@@ -53,7 +63,12 @@ const menuItems = [
     icon: Calendar,
     roles: ["Interviewer", "admin"],
   },
-  { title: "Users", url: "/users", icon: BarChart3, roles: ["admin", "Recruiter"] },
+  {
+    title: "Users",
+    url: "/users",
+    icon: BarChart3,
+    roles: ["admin", "Recruiter"],
+  },
   {
     title: "Analytics",
     url: "/analytics",
@@ -70,7 +85,7 @@ const menuItems = [
 
 function AppSidebar() {
   const location = useLocation();
-  const { getUserRoles } = useAuth();
+  const { getUserRoles, getUserDetails} = useAuth();
   const userRoles = getUserRoles();
   console.log(userRoles, "userRoles");
 
@@ -82,7 +97,8 @@ function AppSidebar() {
 
   console.log(filteredMenuItems, "filteredMenuItems");
 
-  const displayItems = filteredMenuItems.length > 0 ? filteredMenuItems : menuItems;
+  const displayItems =
+    filteredMenuItems.length > 0 ? filteredMenuItems : menuItems;
   return (
     <Sidebar className="border-r bg-slate-50/50 backdrop-blur-sm">
       <SidebarHeader className="border-b p-6">
@@ -90,7 +106,7 @@ function AppSidebar() {
           <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
             <Briefcase className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-xl text-slate-800">TalentFlow</span>
+          <span className="font-bold text-xl text-slate-800">XBeesHire</span>
         </div>
       </SidebarHeader>
       <SidebarContent className="p-4">
@@ -120,16 +136,22 @@ function AppSidebar() {
     </Sidebar>
   );
 }
+ 
 
+// ✅ Rename the type to avoid conflict with the variable
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { logout } = useAuth();
+  const { logout ,getUserDetails} = useAuth();
+  
   const navigate = useNavigate();
+  const userDetails = getUserDetails();
+ 
+  console.log( userDetails.name,'userDetails')
   const [user] = useState({
-    name: "John Doe",
+    name: userDetails.name,
     avatarUrl:
       "https://ui-avatars.com/api/?name=John+Doe&background=4f46e5&color=fff",
   });
@@ -153,7 +175,7 @@ export default function Layout({ children }: LayoutProps) {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="p-0 h-8 rounded-full overflow-hidden flex items-center gap-2 focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      className="px-2 py-4 h-10 rounded-lg overflow-hidden flex items-center gap-2 focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                     >
                       <img
                         src={user.avatarUrl}
@@ -161,7 +183,7 @@ export default function Layout({ children }: LayoutProps) {
                         className="w-8 h-8 rounded-full"
                       />
                       <span className="text-sm font-medium text-slate-700 hidden sm:inline">
-                        {user.name}
+                        Anand Gupta
                       </span>
                     </Button>
                   </DropdownMenuTrigger>

@@ -80,7 +80,7 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
         author_id: 1
       };
       const res = await axios.post(
-        `http://13.51.235.31:3000/candidate/createCandidateCallLog`,
+        `http://16.171.117.2:3000/candidate/createCandidateCallLog`,
         payload
       );
       if (res.data.status) {

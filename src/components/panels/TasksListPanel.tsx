@@ -22,7 +22,7 @@ interface TasksListPanelProps {
   refreshTrigger?: boolean;
 }
 
-const API_BASE = "http://13.51.235.31:3000";
+const API_BASE = "http://16.171.117.2:3000";
 
 export function TasksListPanel({
   candidateId,

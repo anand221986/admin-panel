@@ -26,7 +26,7 @@ import { useEffect, useState } from "react";
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
 import AddClientModal from "@/components/modals/AddClientModal";
 import axios from "axios";
-const API_BASE_URL = "http://13.51.235.31:3000";
+const API_BASE_URL = "http://16.171.117.2:3000";
 
 type Metric = {
   title: string;

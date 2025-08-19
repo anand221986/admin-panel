@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import TemplatesManager from "@/components/panels/TemplatesSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, User, Building, Mail, Shield, Save } from "lucide-react";
+import {
+  Bell,
+  User,
+  Building,
+  Mail,
+  Shield,
+  Save,
+  FileText,
+  ListChecks,
+} from "lucide-react";
+import { StatusSettingsTab } from "@/components/StatusSettingsTab";
 
 const Settings = () => {
   return (
@@ -30,7 +41,7 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white/60 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-7 bg-white/60 backdrop-blur-sm">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profile
@@ -50,12 +61,21 @@ const Settings = () => {
               <Mail className="w-4 h-4" />
               Email
             </TabsTrigger>
+            <TabsTrigger value="templates" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Templates
+            </TabsTrigger>
+            <TabsTrigger value="status" className="flex items-center gap-2">
+              <ListChecks className="w-4 h-4" />
+              Status
+            </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
               Security
             </TabsTrigger>
           </TabsList>
 
+          {/* Profile Tab */}
           <TabsContent value="profile">
             <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
               <CardHeader>
@@ -66,6 +86,7 @@ const Settings = () => {
               <CardContent className="space-y-6">
                 <div className="flex items-center gap-6">
                   <Avatar className="w-20 h-20">
+                    <AvatarImage src="" alt="Profile" />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xl">
                       JD
                     </AvatarFallback>
@@ -125,7 +146,7 @@ const Settings = () => {
                   <div className="space-y-2">
                     <Label htmlFor="department">Department</Label>
                     <Select>
-                      <SelectTrigger className="bg-white/80">
+                      <SelectTrigger id="department" className="bg-white/80">
                         <SelectValue placeholder="Select department" />
                       </SelectTrigger>
                       <SelectContent className="bg-white/95 backdrop-blur-sm">
@@ -157,6 +178,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
+          {/* Company Tab */}
           <TabsContent value="company">
             <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
               <CardHeader>
@@ -185,7 +207,7 @@ const Settings = () => {
                   <div className="space-y-2">
                     <Label htmlFor="industry">Industry</Label>
                     <Select>
-                      <SelectTrigger className="bg-white/80">
+                      <SelectTrigger id="industry" className="bg-white/80">
                         <SelectValue placeholder="Select industry" />
                       </SelectTrigger>
                       <SelectContent className="bg-white/95 backdrop-blur-sm">
@@ -200,7 +222,7 @@ const Settings = () => {
                   <div className="space-y-2">
                     <Label htmlFor="size">Company Size</Label>
                     <Select>
-                      <SelectTrigger className="bg-white/80">
+                      <SelectTrigger id="size" className="bg-white/80">
                         <SelectValue placeholder="Select size" />
                       </SelectTrigger>
                       <SelectContent className="bg-white/95 backdrop-blur-sm">
@@ -234,6 +256,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
+          {/* Notifications Tab */}
           <TabsContent value="notifications">
             <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
               <CardHeader>
@@ -306,6 +329,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
+          {/* Email Tab */}
           <TabsContent value="email">
             <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
               <CardHeader>
@@ -372,6 +396,17 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
+          {/* Templates Tab */}
+          <TabsContent value="templates">
+            <TemplatesManager />
+          </TabsContent>
+
+          {/* Status Tab */}
+          <TabsContent value="status">
+            <StatusSettingsTab />
+          </TabsContent>
+
+          {/* Security Tab */}
           <TabsContent value="security">
             <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
               <CardHeader>

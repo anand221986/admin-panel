@@ -1,14 +1,19 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-const API_BASE_URL = "http://13.51.235.31:3000";
-
+const API_BASE_URL = "http://16.171.117.2:3000";
+type UserDetails = {
+  name: string;
+  email: string;
+  roles: string[];
+};
 interface AuthContextType {
   user: any;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
   getUserRoles: () => string[]; 
+  getUserDetails:() => UserDetails | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => { },
   loading: true,
   getUserRoles: () => [],
+  getUserDetails:  () => null,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -25,6 +31,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
+   
+  //     const decoded: any = jwtDecode(savedUser);
+  //     console.log(decoded,'decode')
+  // const expiry = decoded.exp * 1000; // convert to ms
+  // const now = Date.now();
+  // const remaining = expiry - now;
+  //   console.log(savedUser,'saveduse')
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -51,6 +64,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const token = localStorage.getItem("idToken");
       if (token) {
         const decoded: DecodedToken = jwtDecode(token);
+        console.log(decoded,'decoded')
         const userRoles = decoded["cognito:groups"] || [];
         console.log("User Roles:", userRoles);
       }
@@ -74,6 +88,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 };
 
+const getUserDetails = (): UserDetails | null => {
+  const token = localStorage.getItem("idToken");
+  if (!token) return null;
+
+  try {
+    const decoded: any = jwtDecode(token);
+    return {
+      name: decoded.name,
+      email: decoded.email,
+      roles: decoded["cognito:groups"] || [],
+    };
+  } catch (err) {
+    console.error("Token decode error", err);
+    return null;
+  }
+};
+
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
@@ -85,7 +117,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, getUserRoles }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, getUserRoles,getUserDetails }}>
       {children}
     </AuthContext.Provider>
   );

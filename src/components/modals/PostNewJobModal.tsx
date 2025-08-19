@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import axios from "axios";
 import { Upload, Loader2, Download, FileSpreadsheet } from "lucide-react";
-const API_BASE_URL = "http://13.51.235.31:3000";
+const API_BASE_URL = "http://16.171.117.2:3000";
 
 interface PostNewJobModalProps {
   open: boolean;
@@ -402,7 +402,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
     }));
 
   const handleParseJD = async () => {
-        setIsParsing(true);
+    setIsParsing(true);
     if (!pastedJD.trim() && !uploadedFile) {
       toast.warning("Please paste a job description or upload a file.");
       return;
@@ -434,19 +434,33 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       console.log(rawExtracted, "rawextracted");
       rawExtracted = rawExtracted.replace(/```json\n?|```/g, "");
       let extractedObj = JSON.parse(rawExtracted);
-
+      let req = "";
+      if (extractedObj.responsibilities) {
+        req += extractedObj.responsibilities;
+      }
+      if (extractedObj.requirements) {
+        // add line break only if responsibilities already present
+        if (req) req += "\n\n";
+        req += extractedObj.requirements;
+}
       const parsedData = {
         jobTitle: extractedObj.jobTitle,
         description: {
           about: extractedObj.about,
-          requirements: extractedObj.requirements,
+          requirements: req,
+          benefits:extractedObj.benefits
         },
-        companyDetails: { industry: extractedObj.industry, jobFunction: extractedObj.jobFunction },
+        companyDetails: {
+          industry: extractedObj.industry,
+          jobFunction: extractedObj.jobFunction,
+        },
         employmentDetails: {
           experience: "",
           education: "",
           keywords: [],
         },
+        company:extractedObj.companyName,
+        about_company:extractedObj.aboutCompany,
       };
 
       setFormData((prev) => ({
@@ -744,7 +758,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                     )}
                   </div>
                   <div className="md:col-span-2">
-                    <label className="text-sm">Requirements</label>
+                    <label className="text-sm">Responsibilities/Requirements</label>
                     <Textarea
                       placeholder="List requirements"
                       rows={3}
@@ -1037,29 +1051,29 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                   <div>
                     <label className="text-sm">Salary From</label>
                     <Input
-                      type="number"
+                      type="text"
+                      placeholder="e.g., 500000"
                       value={formData.salary.from}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "salary",
-                          "from",
-                          Number(e.target.value)
-                        )
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "" || /^[0-9\b]+$/.test(value)) {
+                          handleNestedChange("salary", "from", Number(value));
+                        }
+                      }}
                     />
                   </div>
                   <div>
                     <label className="text-sm">Salary To</label>
                     <Input
-                      type="number"
+                      type="text"
+                      placeholder="e.g., 700000"
                       value={formData.salary.to}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "salary",
-                          "to",
-                          Number(e.target.value)
-                        )
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "" || /^[0-9\b]+$/.test(value)) {
+                          handleNestedChange("salary", "to", Number(value));
+                        }
+                      }}
                     />
                     {errors.salaryRange && (
                       <p className="text-red-500 text-xs mt-1">

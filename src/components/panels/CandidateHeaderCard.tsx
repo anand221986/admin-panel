@@ -11,6 +11,7 @@ import {
 import { MoreVertical } from "lucide-react";
 import StarRating from "../StarRating";
 import { Badge } from "@/components/ui/badge";
+import { SiWhatsapp } from "react-icons/si";
 
 interface CandidateProfileForHeader {
   first_name: string;
@@ -71,6 +72,8 @@ export default function CandidateHeaderCard({
   const fullResumeUrl = resume_url
     ? `${FILE_SERVER_URL}/ats-api/uploads/${resume_url}`
     : null;
+
+  const cleanedPhone = phone ? phone.replace(/[^0-9+]/g, "") : "";
 
   return (
     <Card className="p-4 space-y-4 shadow-sm rounded-xl">
@@ -141,9 +144,22 @@ export default function CandidateHeaderCard({
             </p>
           )}
           {phone && (
-            <p>
+            <p className="flex items-center space-x-2">
               <strong className="font-medium text-slate-500">Phone:</strong>{" "}
-              {phone}
+              <span>{phone}</span>
+              {cleanedPhone && (
+                <a
+                  href={`https://wa.me/${cleanedPhone}?text=Hello%20${
+                    first_name + " " + last_name
+                  },%20I%20am%20from%20XYZ%20Recruitment`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center text-gray-500 hover:text-green-600 transition-colors"
+                  title="Chat on WhatsApp"
+                >
+                  <SiWhatsapp className="h-4 w-4 text-green-600" />
+                </a>
+              )}
             </p>
           )}
 

@@ -32,6 +32,7 @@ export interface Person {
 
 interface EmailPanelProps {
   candidate: Person;
+  refreshTrigger?: () => void;
 }
 
 export function EmailPanel({ candidate }: EmailPanelProps) {
@@ -60,7 +61,7 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
         author_id: 1
       };
       const res = await axios.post(
-        `http://13.51.235.31:3000/candidate/sendCandidateEmail`,
+        `http://16.171.117.2:3000/candidate/sendCandidateEmail`,
         payload
       );
       if (res.data.status) {

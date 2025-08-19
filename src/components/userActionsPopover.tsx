@@ -48,16 +48,16 @@ interface CandidateForm {
 
 type CandidateActionsPopoverProps = {
     candidate:CandidateForm,
-  candidateId: number;
   fetchCandidates: () => void;
   children: React.ReactNode;
+  candidateId: number;
 };
 
-export function CandidateActionsPopover({
+export function UserActionsPopover({
     candidate,
-  candidateId,
   fetchCandidates,
   children,
+  candidateId
 }: CandidateActionsPopoverProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);

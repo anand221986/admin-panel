@@ -14,7 +14,7 @@ import { Filter } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 
-const API_BASE = "http://13.51.235.31:3000";
+const API_BASE = "http://16.171.117.2:3000";
 
 export interface Activity {
   id: string;
@@ -27,9 +27,11 @@ export interface Activity {
 interface ActivitiesPanelProps {
   activities?: Activity[];
   candidateId: number;
+  reloadKey: number;
+  readonly?: () => void; // Optional if unused
 }
 
-export function ActivitiesPanel({ candidateId }: ActivitiesPanelProps) {
+export function ActivitiesPanel({ candidateId,reloadKey }: ActivitiesPanelProps) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [activity, setActivity] = useState<Activity[]>([]);
@@ -71,7 +73,7 @@ export function ActivitiesPanel({ candidateId }: ActivitiesPanelProps) {
 
   useEffect(() => {
     fetchActivities();
-  }, [candidateId]);
+  }, [candidateId,reloadKey]);
 
   const grouped = useMemo(() => {
     return activity.reduce<Record<string, Activity[]>>((acc, act) => {

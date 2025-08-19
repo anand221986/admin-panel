@@ -21,7 +21,7 @@ import {
 interface NotesPanelProps {
   candidateId: number;
   authorId: number;
-  refreshTrigger?: boolean;
+  refreshTrigger?: () => void;
 }
 
   
@@ -44,7 +44,7 @@ const [notesName, setNotesName] = useState("");
         note: notesName,
       };
       const res = await axios.post(
-        `http://13.51.235.31:3000/candidate/addCandidateNotes`,
+        `http://16.171.117.2:3000/candidate/addCandidateNotes`,
         payload
       );
       if (res.data.status) {

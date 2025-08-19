@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { Trash2 } from "lucide-react";
 
-const API_BASE_URL = "http://13.51.235.31:3000";
+const API_BASE_URL = "http://16.171.117.2:3000";
 
 interface BulkUpdateFieldsModalProps {
   open: boolean;
@@ -29,9 +29,6 @@ interface BulkUpdateFieldsModalProps {
 }
 
 const fieldOptions = [
-  { key: "status", label: "Status" },
-  { key: "recruiter_status", label: "Recruiter Status" },
-  { key: "hmapproval", label: "HM Approval" },
   { key: "rating", label: "Rating" },
   { key: "current_ctc", label: "Current CTC" },
   { key: "expected_ctc", label: "Expected CTC" },
@@ -51,32 +48,11 @@ const fieldOptions = [
   { key: "cover_letter", label: "Cover Letter" },
   { key: "current_company", label: "Current Company" },
   { key: "currency", label: "Currency" },
-  { key: "skill", label: "Skills" },
   { key: "college", label: "College" },
   { key: "degree", label: "Degree" },
 ];
 
 const dropdownOptions: Record<string, { value: string; label: string }[]> = {
-  status: [
-    { value: "Application", label: "Application" },
-    { value: "Screening", label: "Screening" },
-    { value: "Interview", label: "Interview" },
-    { value: "Offer", label: "Offer" },
-    { value: "Hired", label: "Hired" },
-    { value: "Rejected", label: "Rejected" },
-  ],
-  recruiter_status: [
-    { value: "New Application", label: "New Application" },
-    { value: "Initial Review", label: "Initial Review" },
-    { value: "Screening Complete", label: "Screening Complete" },
-    { value: "Recommended", label: "Recommended" },
-    { value: "Not Suitable", label: "Not Suitable" },
-  ],
-  hmapproval: [
-    { value: "Approved", label: "Approved" },
-    { value: "Rejected", label: "Rejected" },
-    { value: "Pending", label: "Pending" },
-  ],
   rating: [
     { value: "1", label: "1" },
     { value: "2", label: "2" },
