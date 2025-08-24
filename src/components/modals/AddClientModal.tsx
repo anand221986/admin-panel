@@ -621,3 +621,4 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
 };
 
 export default AddClientModal;
+

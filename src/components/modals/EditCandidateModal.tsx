@@ -328,3 +328,4 @@ const EditCandidateModal: React.FC<EditCandidateModalProps> = ({
 };
 
 export default EditCandidateModal;
+

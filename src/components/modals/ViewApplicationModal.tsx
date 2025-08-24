@@ -8,21 +8,19 @@ import {
 } from "@/components/ui/dialog";
 import axios from "axios";
 import CandidateViewList from "../CandidateViewTable";
-import { RefreshCw, Users, X } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const API_BASE_URL = "http://16.171.117.2:3000";
 
-const STATUSES = [
-  "All",
-  "Sourced",
-  "Application",
-  "Screening",
-  "Interview",
-  "Offer",
-  "Hired",
-];
+interface StatusOption {
+  id: number;
+  name: string;
+  type: "candidate" | "recruiter";
+  is_active: boolean;
+  color: string;
+}
 
 type ViewApplicationsModalProps = {
   open: boolean;
@@ -42,10 +40,10 @@ export default function ViewApplicationsModal({
   const [applicants, setApplicants] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeStatus, setActiveStatus] = useState<string>(initialStatus);
+  const [pipelineStatuses, setPipelineStatuses] = useState<string[]>(["All"]);
 
   const fetchApplicants = async () => {
     if (!jobId) return;
-
     setLoading(true);
     try {
       const { data } = await axios.get(
@@ -68,9 +66,27 @@ export default function ViewApplicationsModal({
     }
   };
 
+  const fetchStatuses = async () => {
+    try {
+      const { data } = await axios.get<{ result: StatusOption[] }>(
+        `${API_BASE_URL}/candidate/getAllStatus`
+      );
+      if (data && Array.isArray(data.result)) {
+        const fetchedStages = data.result
+          .filter((status) => status.is_active && status.type === "candidate")
+          .map((status) => status.name);
+        setPipelineStatuses(["All", ...fetchedStages]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch statuses", error);
+      toast.error("Could not load status filters.");
+    }
+  };
+
   useEffect(() => {
     if (open && jobId) {
       setActiveStatus(initialStatus);
+      fetchStatuses();
       fetchApplicants();
     }
   }, [open, jobId, initialStatus]);
@@ -107,7 +123,7 @@ export default function ViewApplicationsModal({
             </div>
 
             <div className="flex space-x-2 overflow-x-auto pt-4 pb-1">
-              {STATUSES.map((status) => (
+              {pipelineStatuses.map((status) => (
                 <Button
                   key={status}
                   variant={status === activeStatus ? "default" : "outline"}
@@ -160,3 +176,4 @@ export default function ViewApplicationsModal({
     </Dialog>
   );
 }
+

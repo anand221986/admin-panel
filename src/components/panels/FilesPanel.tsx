@@ -4,12 +4,7 @@ import { FileText, Download, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { API_BASE_URL, FILE_SERVER_URL } from "../../config/api";
 
 export interface ResumeFile {
   id: number;
@@ -22,19 +17,13 @@ export interface ResumeFile {
 
 interface FilesPanelProps {
   candidateId: number;
+  onResumePreview?: (resume: ResumeFile, url: string) => void;
 }
 
-const API_BASE_URL = "http://16.171.117.2:3000";
-const FILE_SERVER_URL = "http://13.51.235.31";
-
-export function FilesPanel({ candidateId }: FilesPanelProps) {
+export function FilesPanel({ candidateId, onResumePreview }: FilesPanelProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [resumes, setResumes] = useState<ResumeFile[]>([]);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
-
-  const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
-  const [previewTitle, setPreviewTitle] = useState<string>("");
 
   const fetchResumes = useCallback(async () => {
     if (!candidateId) return;
@@ -97,15 +86,19 @@ export function FilesPanel({ candidateId }: FilesPanelProps) {
     }
   };
 
-  const handlePreview = (url: string, title: string) => {
-    setPreviewUrl(url);
-    setPreviewTitle(title);
-    setIsPreviewOpen(true);
+  const handlePreview = (resume: ResumeFile) => {
+    const fileUrl = `${FILE_SERVER_URL}/ats-api/uploads/${resume.resume_url}`;
+    if (onResumePreview) {
+      onResumePreview(resume, fileUrl);
+    }
   };
 
   return (
-    <>
-      <ScrollArea className="h-[400px] p-2">
+    <div className="h-[600px] px-4">
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold">Resume Files</h3>
+      </div>
+      <ScrollArea className="h-[550px]">
         {loading && (
           <div className="flex justify-center items-center h-full">
             <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
@@ -124,13 +117,13 @@ export function FilesPanel({ candidateId }: FilesPanelProps) {
             return (
               <div
                 key={resume.id}
-                className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm mb-4"
+                className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm mb-4 hover:bg-gray-50"
               >
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 flex-1">
                   <FileText className="w-6 h-6 text-gray-600" />
                   <button
-                    onClick={() => handlePreview(fileUrl, resume.resume_url)}
-                    className="font-medium text-blue-600 hover:underline break-all text-left"
+                    onClick={() => handlePreview(resume)}
+                    className="font-medium text-blue-600 hover:underline break-all text-left flex-1"
                   >
                     {resume.resume_url}
                   </button>
@@ -141,7 +134,6 @@ export function FilesPanel({ candidateId }: FilesPanelProps) {
                       ? format(parseISO(resume.uploaded_at), "dd MMM, yyyy")
                       : "N/A"}
                   </span>
-
                   <button
                     onClick={() =>
                       handleDownload(fileUrl, resume.resume_url, resume.id)
@@ -161,21 +153,6 @@ export function FilesPanel({ candidateId }: FilesPanelProps) {
             );
           })}
       </ScrollArea>
-
-      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-4xl w-full h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-6 pb-2">
-            <DialogTitle className="truncate">{previewTitle}</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 px-6 pb-6">
-            <iframe
-              src={previewUrl}
-              title="Resume Preview"
-              className="w-full h-full border rounded-md"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    </div>
   );
 }

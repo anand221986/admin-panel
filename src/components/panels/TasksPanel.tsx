@@ -17,6 +17,7 @@ interface TasksPanelProps {
   candidateId: number;
   authorId: number;
   onTaskAdded?: () => void;
+  refreshTrigger?: () => void;
 }
 
 export function TasksPanel({

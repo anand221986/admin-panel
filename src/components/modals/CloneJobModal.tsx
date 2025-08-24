@@ -3,7 +3,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,9 +20,19 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-
-const API_BASE_URL = "http://16.171.117.2:3000";
-
+import {
+  currencyOptions,
+  API_BASE_URL,
+  TEMPLATE_HEADERS,
+  JobsForm,
+  initialForm,
+  educationLevels,
+  employmentTypes,
+  industries,
+  jobFunctions,
+} from "@/components/constants/jobConstants";
+import { Form } from "react-hook-form";
+import { DialogClose } from "@radix-ui/react-dialog";
 type CloneJobModalProps = {
   open: boolean;
   onOpenChange: (val: boolean) => void;
@@ -53,6 +62,17 @@ interface JobForm {
   salary_currency: string;
   status: string;
   priority: string;
+  salary: {
+    from: number;
+    to: number;
+    currency: string;
+  };
+  employmentDetails: {
+    experienceFrom: number;
+    experienceTo: number;
+  };
+  company: string;
+  about_company: string;
 }
 
 export default function CloneJobModal({
@@ -80,9 +100,13 @@ export default function CloneJobModal({
     keywords: [],
     salary_from: "",
     salary_to: "",
-    salary_currency: "USD",
     status: "Draft",
     priority: "Medium",
+    salary: { from: 0, to: 0, currency: "INR" },
+    salary_currency: "INR",
+    employmentDetails: { experienceFrom: 0, experienceTo: 0 },
+    company: "",
+    about_company: "",
   };
 
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -90,6 +114,7 @@ export default function CloneJobModal({
   const [form, setForm] = useState<JobForm>({ ...initialFormState });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState("Draft");
 
   useEffect(() => {
     if (open && jobId) {
@@ -125,11 +150,22 @@ export default function CloneJobModal({
             salary_currency: job.salary_currency || "USD",
             status: job.status || "Draft",
             priority: job.priority || "Medium",
+            employmentDetails: {
+              experienceFrom: job.experience_from,
+              experienceTo: job.experience_to,
+            },
+            salary: {
+              from: job.salary_from,
+              to: job.salary_to,
+              currency: job.salary_currency,
+            },
+            company: job.company,
+            about_company: job.about_company,
           });
         })
         .catch((err) => {
-          console.error("Failed to load job:", err);
-          toast.error("Failed to load job data.");
+          console.error("Failed to Clone the job:", err);
+          toast.error("There is some issue to clone the job ");
         })
         .finally(() => setLoading(false));
     }
@@ -145,6 +181,7 @@ export default function CloneJobModal({
   const validateForm = (): string | null => {
     const newErrors: Record<string, string> = {};
     if (!form.job_title.trim()) newErrors.job_title = "Job title is required.";
+    // if (!form.job_code.trim()) newErrors.job_code = "Job code is required.";
     if (!form.department.trim())
       newErrors.department = "Department is required.";
     if (!form.workplace.trim()) newErrors.workplace = "Workplace is required.";
@@ -180,6 +217,15 @@ export default function CloneJobModal({
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleNestedChange = (section: string, field: string, value: any) => {
+    setForm((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -250,36 +296,33 @@ export default function CloneJobModal({
     }
     setLoading(true);
 
+    //define new payload
     const payload = {
-      jobTitle: form.job_title,
-      jobCode: form.job_code,
+      job_title: form.job_title,
+      job_code: form.job_code,
       department: form.department,
       workplace: form.workplace,
-      officeLocation: {
-        primary: form.office_primary_location,
-        onCareersPage: form.office_on_careers_page,
-        additional: form.office_location_additional,
-      },
-      description: {
-        about: form.description_about,
-        requirements: form.description_requirements,
-        benefits: form.description_benefits,
-      },
-      companyDetails: {
-        industry: form.company_industry,
-        jobFunction: form.company_job_function,
-      },
-      employmentDetails: {
-        employmentType: form.employment_type,
-        experience: form.experience,
-        education: form.education,
-        keywords: form.keywords,
-      },
-      salary: {
-        from: Number(form.salary_from),
-        to: Number(form.salary_to),
-        currency: form.salary_currency,
-      },
+      office_primary_location: form.office_primary_location,
+      office_on_careers_page: form.office_on_careers_page,
+      office_location_additional: form.office_location_additional,
+      description_about: form.description_about,
+      description_requirements: form.description_requirements,
+      description_benefits: form.description_benefits,
+      company_industry: form.company_industry,
+      company_job_function: form.company_job_function,
+      employment_type: form.employment_type,
+      experience: form.experience,
+      education: form.education,
+      keywords: form.keywords,
+      salary_from: form.salary.from,
+      salary_to: form.salary.to,
+      salary_currency: form.salary_currency,
+      status: form.status,
+      priority: form.priority,
+      experienceFrom: form.employmentDetails.experienceFrom,
+      experienceTo: form.employmentDetails.experienceTo,
+      company: form.company,
+      about_company: form.about_company,
     };
 
     try {
@@ -299,21 +342,19 @@ export default function CloneJobModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-5xl rounded-xl overflow-hidden p-0">
-        <form onSubmit={handleSubmit}>
-          <div className="max-h-[80vh] overflow-y-auto p-6">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold mb-4">
-                Clone Job
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
-              <div className="md:col-span-2 mt-5 mb-4">
-                <h3 className="text-xl font-semibold">Work Details</h3>
-              </div>
+      <DialogContent className="sm:max-w-[80vw] min-h-[80vh] rounded-2xl p-0 overflow-hidden">
+        <div className="max-h-[75vh] overflow-y-auto p-6 space-y-6">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-semibold">
+              Clone Job
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm">Job Title *</label>
+                <label className="block text-sm font-medium mb-1">
+                  Job Title
+                </label>
                 <Input
                   name="job_title"
                   placeholder="Job Title"
@@ -322,13 +363,28 @@ export default function CloneJobModal({
                   ref={(el) => (fieldRefs.current.job_title = el)}
                 />
                 {errors.job_title && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.job_title}
-                  </p>
+                  <p className="text-red-500 text-xs">{errors.job_title}</p>
                 )}
               </div>
+              {/* <div>
+                <label className="block text-sm font-medium mb-1">
+                  Job Code
+                </label>
+                <Input
+                  name="job_code"
+                  placeholder="Job Code"
+                  value={form.job_code}
+                  onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.job_code = el)}
+                />
+                {errors.job_code && (
+                  <p className="text-red-500 text-xs">{errors.job_code}</p>
+                )}
+              </div> */}
               <div>
-                <label className="text-sm">Department *</label>
+                <label className="block text-sm font-medium mb-1">
+                  Department
+                </label>
                 <Input
                   name="department"
                   placeholder="Department"
@@ -337,96 +393,101 @@ export default function CloneJobModal({
                   ref={(el) => (fieldRefs.current.department = el)}
                 />
                 {errors.department && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.department}
-                  </p>
+                  <p className="text-red-500 text-xs">{errors.department}</p>
                 )}
               </div>
-            </div>
-
-            {/* Workplace + Status + Priority in one line */}
-            <div className="grid grid-cols-3 gap-4 w-full mt-4">
               <div>
-                <label className="text-sm ">Workplace *</label>
+                <label>Workplace*</label>
                 <Select
                   value={form.workplace}
                   onValueChange={(val) => handleSelectChange("workplace", val)}
                 >
                   <SelectTrigger
                     ref={(el) => (fieldRefs.current.workplace = el)}
-                    className="w-full"
                   >
                     <SelectValue placeholder="Select workplace" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="On-site">On-site</SelectItem>
+                    <SelectItem value="Onsite">Onsite</SelectItem>
                     <SelectItem value="Remote">Remote</SelectItem>
                     <SelectItem value="Hybrid">Hybrid</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.workplace && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.workplace}
-                  </p>
+                  <p className="text-red-500 text-sm">{errors.workplace}</p>
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm mb-1">Status</label>
-                <Select
-                  value={form.status}
-                  onValueChange={(val) => handleSelectChange("status", val)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Draft">Draft</SelectItem>
-                    <SelectItem value="Published">Published</SelectItem>
-                    <SelectItem value="Closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Status
+                  </label>
+                  <Select
+                    value={form.status}
+                    onValueChange={(val) => handleSelectChange("status", val)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Draft">Draft</SelectItem>
+                      <SelectItem value="Published">Published</SelectItem>
+                      <SelectItem value="Closed">Closed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Priority
+                  </label>
+                  <Select
+                    value={form.priority}
+                    onValueChange={(val) => handleSelectChange("priority", val)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm mb-1">Priority</label>
-                <Select
-                  value={form.priority}
-                  onValueChange={(val) => handleSelectChange("priority", val)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Low">Low</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="High">High</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="block text-sm font-medium mb-1">
+                  Office Location
+                </label>
+                <Input
+                  name="office_primary_location"
+                  placeholder="Primary Office Location"
+                  value={form.office_primary_location}
+                  onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.office_primary_location = el)}
+                />
+                {errors.office_primary_location && (
+                  <p className="text-red-500 text-xs">
+                    {errors.office_primary_location}
+                  </p>
+                )}
               </div>
             </div>
-
-            {/* Office Location - separate */}
-            <div className="mt-4">
-              <label className="text-sm">Office Location *</label>
-              <Input
-                name="office_primary_location"
-                placeholder="Primary Office Location"
-                value={form.office_primary_location}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="flex items-center space-x-2 mb-4 mt-2">
+            <div className="flex items-center space-x-2">
               <Checkbox
                 checked={form.office_on_careers_page}
                 onCheckedChange={handleCheckboxChange}
               />
-              <label className="text-sm">Show office on careers page</label>
+              <label className="text-sm font-medium">
+                Show office on careers page
+              </label>
             </div>
-
             <div>
-              <label className="text-sm ">Additional Office Locations</label>
+              <label className="block text-sm font-medium mb-1">
+                Additional Office Locations
+              </label>
               <Input
                 onKeyDown={handleLocationAdd}
                 placeholder="Add location and press Enter"
@@ -446,42 +507,38 @@ export default function CloneJobModal({
                 ))}
               </div>
             </div>
-
-            {/* rest of your form continues unchanged... */}
-
-            <div className="grid grid-cols-1 gap-4 mt-6">
-              <div className="md:col-span-1 mb-2 ">
-                <h3 className="text-xl font-semibold">Job Description</h3>
-              </div>
+            <div className="grid gap-4">
               <div>
-                <label className="text-sm">About the Job *</label>
+                <label className="block text-sm font-medium mb-1">
+                  Job Description
+                </label>
                 <Textarea
                   name="description_about"
-                  placeholder="Describe the role and responsibilities"
+                  placeholder="About the Job"
                   value={form.description_about}
                   onChange={handleChange}
-                  rows={4}
                   ref={(el) => (fieldRefs.current.description_about = el)}
                 />
                 {errors.description_about && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 text-xs">
                     {errors.description_about}
                   </p>
                 )}
               </div>
               <div>
-                <label className="text-sm">Requirements</label>
+                <label className="block text-sm font-medium mb-1">
+                  Job Requirements
+                </label>
                 <Textarea
                   name="description_requirements"
-                  placeholder="Skills, experience, and qualifications required"
+                  placeholder="Requirements"
                   value={form.description_requirements}
                   onChange={handleChange}
-                  rows={4}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Job Benefits
+                  Benefits
                 </label>
                 <Textarea
                   name="description_benefits"
@@ -494,9 +551,15 @@ export default function CloneJobModal({
 
             {/* Industry, Job Function, etc. ... unchanged */}
 
+            <div className="md:col-span-2 mt-4 mb-2">
+              <h3 className="text-xl font-semibold">Company Details</h3>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Industry</label>
+                <label className="block text-sm font-medium mb-1">
+                  Industry
+                </label>
                 <Input
                   name="company_industry"
                   placeholder="Industry"
@@ -505,13 +568,15 @@ export default function CloneJobModal({
                   ref={(el) => (fieldRefs.current.company_industry = el)}
                 />
                 {errors.company_industry && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 text-xs">
                     {errors.company_industry}
                   </p>
                 )}
               </div>
               <div>
-                <label className="text-sm">Job Function *</label>
+                <label className="block text-sm font-medium mb-1">
+                  Job Function
+                </label>
                 <Input
                   name="company_job_function"
                   placeholder="Job Function"
@@ -520,74 +585,154 @@ export default function CloneJobModal({
                   ref={(el) => (fieldRefs.current.company_job_function = el)}
                 />
                 {errors.company_job_function && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 text-xs">
                     {errors.company_job_function}
                   </p>
                 )}
               </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* <div>
+                <label className="block text-sm font-medium mb-1">
+                  Salary From
+                </label>
+                <Input
+                  name="salary_from"
+                  placeholder="Salary From"
+                  value={form.salary_from}
+                  onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.salary_from = el)}
+                />
+                {errors.salary_from && (
+                  <p className="text-red-500 text-xs">{errors.salary_from}</p>
+                )}
+              </div> */}
               <div>
-                <label className="text-sm">Employment Type *</label>
-                <Select
-                  value={form.employment_type}
-                  onValueChange={(val) =>
-                    handleSelectChange("employment_type", val)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Employment Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Full-time">Full-time</SelectItem>
-                    <SelectItem value="Part-time">Part-time</SelectItem>
-                    <SelectItem value="Contract">Contract</SelectItem>
-                    <SelectItem value="Internship">Internship</SelectItem>
-                    <SelectItem value="Temporary">Temporary</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="text-sm">Experience *</label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    type="number"
+                    placeholder="From"
+                    value={form.employmentDetails.experienceFrom}
+                    onChange={(e) =>
+                      handleNestedChange(
+                        "employmentDetails",
+                        "experienceFrom",
+                        e.target.value
+                      )
+                    }
+                    className="w-24"
+                  />
+                  <span>to</span>
+                  <Input
+                    type="number"
+                    placeholder="To"
+                    value={form.employmentDetails.experienceTo}
+                    onChange={(e) =>
+                      handleNestedChange(
+                        "employmentDetails",
+                        "experienceTo",
+                        e.target.value
+                      )
+                    }
+                    className="w-24"
+                  />
+                  <span>Years</span>
+                </div>
+
+                {(errors.experienceFrom || errors.experienceTo) && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.experienceFrom}
+                    <br /> {errors.experienceTo}
+                  </p>
+                )}
               </div>
               <div>
-                <label className="text-sm">Experience Level *</label>
-                <Select
-                  value={form.experience}
-                  onValueChange={(val) => handleSelectChange("experience", val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Experience Level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Entry level">Entry level</SelectItem>
-                    <SelectItem value="Mid level">Mid level</SelectItem>
-                    <SelectItem value="Senior level">Senior level</SelectItem>
-                    <SelectItem value="Director">Director</SelectItem>
-                    <SelectItem value="Executive">Executive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm">Education Level</label>
-                <Select
-                  value={form.education}
-                  onValueChange={(val) => handleSelectChange("education", val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Education Level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="High School">High School</SelectItem>
-                    <SelectItem value="Associate">Associate</SelectItem>
-                    <SelectItem value="Bachelor">Bachelor</SelectItem>
-                    <SelectItem value="Master">Master</SelectItem>
-                    <SelectItem value="Doctorate">Doctorate</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="block text-sm font-medium mb-1">
+                  Currency
+                </label>
+                <Input
+                  name="salary_currency"
+                  placeholder="Currency"
+                  value={form.salary_currency}
+                  onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.salary_currency = el)}
+                />
+                {errors.salary_currency && (
+                  <p className="text-red-500 text-xs">
+                    {errors.salary_currency}
+                  </p>
+                )}
               </div>
             </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mt-10 mb-2">
-  <div className="md:col-span-2 mb-4">
-    <h3 className="text-xl font-semibold">Salary Information</h3>
-  </div>
-  <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mt-10 mb-2">
+              <div className="md:col-span-2 mb-4">
+                <h3 className="text-xl font-semibold">Salary Information</h3>
+              </div>
+
+              {/* Salary */}
+              <div>
+                <label className="text-sm">Annual Salary</label>
+                <div
+                  style={{ display: "flex", gap: "8px", alignItems: "center" }}
+                >
+                  <Select
+                    value={form.salary.currency}
+                    onValueChange={(value) =>
+                      handleNestedChange("salary", "currency", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencyOptions.map((currency) => (
+                        <SelectItem key={currency} value={currency}>
+                          {currency}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* FROM */}
+                  <input
+                    type="number"
+                    placeholder="Min salary"
+                    value={form.salary.from}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleNestedChange(
+                        "salary",
+                        "from",
+                        val === "" ? "" : Number(val)
+                      );
+                    }}
+                  />
+                  <span>To</span>
+                  {/* TO */}
+                  <input
+                    type="number"
+                    placeholder="Max salary"
+                    value={form.salary.to}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleNestedChange(
+                        "salary",
+                        "to",
+                        val === "" ? "" : Number(val)
+                      );
+                    }}
+                  />{" "}
+                  lacs
+                </div>
+                {errors.salaryRange && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.salaryRange}
+                  </p>
+                )}
+              </div>
+
+              {/* <div>
     <label className="text-sm">Salary From</label>
     <Input
       name="salary_from"
@@ -606,51 +751,44 @@ export default function CloneJobModal({
       onChange={handleChange}
       type="number"
     />
-  </div>
-</div>
+  </div> */}
+            </div>
 
-<div className="mt-5 md:mt-5">
-  <label className="text-sm">Keywords (Press Enter to add)</label>
-  <Input
-    onKeyDown={handleKeywordAdd}
-    placeholder="Add keyword and press Enter"
-  />
-  <div className="flex flex-wrap gap-2 mt-2">
-    {form.keywords.map((kw, idx) => (
-      <Badge
-        key={idx}
-        className="flex items-center gap-1 px-2 py-1 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
-      >
-        {kw}
-        <X
-          className="h-3 w-3 cursor-pointer"
-          onClick={() => removeKeyword(kw)}
-        />
-      </Badge>
-    ))}
-  </div>
-</div>
+            <div className="mt-5 md:mt-5">
+              <label className="text-sm">Keywords (Press Enter to add)</label>
+              <Input
+                onKeyDown={handleKeywordAdd}
+                placeholder="Add keyword and press Enter"
+              />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {form.keywords.map((kw, idx) => (
+                  <Badge
+                    key={idx}
+                    className="flex items-center gap-1 px-2 py-1 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    {kw}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => removeKeyword(kw)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </form>
+        </div>
 
-          </div>
-          <div className="p-6 pt-4 flex justify-end gap-3 border-t bg-gray-50 sticky bottom-0">
-            <DialogClose asChild>
-              <Button
-                variant="outline"
-                type="button"
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-            </DialogClose>
+        <div className="p-6 pt-4 flex justify-end gap-3 border-t bg-gray-50 sticky bottom-0">
+          <DialogClose asChild>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-blue-500"
+              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              {loading ? "Cloning..." : "Clone Job"}
+              {loading ? "Posting..." : "Post Job"}
             </Button>
-          </div>
-        </form>
+          </DialogClose>
+        </div>
       </DialogContent>
     </Dialog>
   );

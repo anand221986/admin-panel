@@ -398,3 +398,4 @@ export default function EditClientModal({ open, onOpenChange, clientId }) {
     </Dialog>
   );
 }
+

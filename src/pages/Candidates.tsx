@@ -6,6 +6,7 @@ import { UserCheck, FileText, Calendar, Download } from "lucide-react";
 import axios from "axios";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 import CandidateViewList from "@/components/CandidateViewTable";
 const API_BASE_URL = "http://16.171.117.2:3000";
 
@@ -81,6 +82,10 @@ const formatCandidateAddress = (address: string): string => {
 export default function Candidates() {
   const [candidates, setCandidates] = useState<CandidateForm[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+
+  const candidateIdFromUrl = searchParams.get('candidateId');
 
   const fetchCandidates = async () => {
     setLoading(true);
@@ -203,6 +208,7 @@ export default function Candidates() {
           jobId={null}
           candidates={candidates}
           fetchCandidates={fetchCandidates}
+          initialCandidateId={candidateIdFromUrl ? parseInt(candidateIdFromUrl) : null}
         />
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -252,3 +258,4 @@ export default function Candidates() {
     </Layout>
   );
 }
+

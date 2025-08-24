@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-const API_BASE_URL = "http://16.171.117.2:3000";
+import { API_BASE_URL } from "../config/api";
+
 type UserDetails = {
   name: string;
   email: string;
   roles: string[];
 };
+
 interface AuthContextType {
   user: any;
   login: (email: string, password: string) => Promise<void>;
@@ -126,3 +128,4 @@ const getUserDetails = (): UserDetails | null => {
 
 
 export const useAuth = () => useContext(AuthContext);
+

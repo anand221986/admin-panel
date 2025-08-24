@@ -3,7 +3,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,37 +20,18 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-
-const API_BASE_URL = "http://16.171.117.2:3000";
-
+import {
+  currencyOptions,
+  API_BASE_URL,
+  employmentTypes,
+  educationLevels,
+} from "@/components/constants/jobConstants";
 type EditJobModalProps = {
   open: boolean;
   onOpenChange: (val: boolean) => void;
   jobId: number;
   onSuccess: () => void;
 };
-const employmentTypes = [
-  "Full-time",
-  "Part-time",
-  "Contract",
-  "Internship",
-  "Temporary",
-];
-const experienceLevels = [
-  "Entry level",
-  "Mid level",
-  "Senior level",
-  "Director",
-  "Executive",
-];
-const educationLevels = [
-  "High School",
-  "Associate",
-  "Bachelor",
-  "Master",
-  "Doctorate",
-];
-
 export default function EditJobModal({
   open,
   onOpenChange,
@@ -80,11 +60,22 @@ export default function EditJobModal({
     salary_currency: "USD",
     company: "",
     about_company: "",
+    salary: { from: 0, to: 0, currency: "INR" },
+   employmentDetails:{experienceFrom:0,experienceTo:0},
   };
 
   const [form, setForm] = useState({ ...initialFormState });
   const [loading, setLoading] = useState(false);
-
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const handleNestedChange = (section: string, field: string, value: any) => {
+    setForm((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+  }
   useEffect(() => {
     if (open && jobId) {
       setLoading(true);
@@ -93,28 +84,38 @@ export default function EditJobModal({
         .then((res) => {
           const job = res.data.result[0];
           setForm({
-            job_title: job.job_title || "",
-            job_code: job.job_code || "",
-            department: job.department || "",
-            workplace: job.workplace || "",
-            office_primary_location: job.office_primary_location || "",
-            office_on_careers_page: job.office_on_careers_page ?? true,
-            office_location_additional: job.office_location_additional || [],
-            description_about: job.description_about || "",
-            description_requirements: job.description_requirements || "",
-            description_benefits: job.description_benefits || "",
-            company_industry: job.company_industry || "",
-            company_job_function: job.company_job_function || "",
-            employment_type: job.employment_type || "",
-            experience: job.experience || "",
-            education: job.education || "",
-            keywords: job.keywords || [],
-            salary_from: job.salary_from || "",
-            salary_to: job.salary_to || "",
-            salary_currency: job.salary_currency || "USD",
-            company: job.company || "",
-            about_company: job.about_company || "",
-          });
+  job_title: job.job_title || "",
+  job_code: job.job_code || "",
+  department: job.department || "",
+  workplace: job.workplace || "",
+  office_primary_location: job.office_primary_location || "",
+  office_on_careers_page: job.office_on_careers_page ?? true,
+  office_location_additional: job.office_location_additional || [],
+  description_about: job.description_about || "",
+  description_requirements: job.description_requirements || "",
+  description_benefits: job.description_benefits || "",
+  company_industry: job.company_industry || "",
+  company_job_function: job.company_job_function || "",
+  employment_type: job.employment_type || "",
+  experience: job.experience || "",
+  education: job.education || "",
+  keywords: job.keywords || [],
+  salary_from: job.salary_from || "",
+  salary_to: job.salary_to || "",
+  salary_currency: job.salary_currency || "USD",
+  company: job.company || "",
+  about_company: job.about_company || "",
+  // 👇 Make sure nested objects are always present
+  salary: {
+    from: job.salary_from || 0,
+    to: job.salary_to || 0,
+    currency: job.salary_currency || "INR",
+  },
+  employmentDetails: {
+    experienceFrom: job.experience_from || 0,
+    experienceTo: job.experience_to || 0,
+  },
+});
         })
         .catch((err) => {
           console.error("Failed to load job:", err);
@@ -192,8 +193,8 @@ export default function EditJobModal({
       setLoading(false);
       onSuccess();
     } catch (err) {
-      console.error("Error updating job:", err);
-      toast.error("Failed to update job.");
+      console.error("Error on updating the job:", err);
+      toast.error("Failed to update the  job.");
     }
   };
 
@@ -227,6 +228,7 @@ export default function EditJobModal({
                 placeholder="Job Code"
                 value={form.job_code}
                 onChange={handleChange}
+                readOnly
               />
             </div>
             <div>
@@ -382,26 +384,45 @@ export default function EditJobModal({
                 </SelectContent>
               </Select>
             </div>
-
-            <div>
-              <label className="text-sm">Experience Level *</label>
-              <Select
-                value={form.experience}
-                onValueChange={(val) => handleSelectChange("experience", val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Experience Level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {experienceLevels.map((level) => (
-                    <SelectItem key={level} value={level}>
-                      {level}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
+<div>
+                                  <label className="text-sm">Experience *</label>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Input
+                                      type="number"
+                                      placeholder="From"
+                                      value={form.employmentDetails.experienceFrom}
+                                      onChange={(e) =>
+                                        handleNestedChange(
+                                          "employmentDetails",
+                                          "experienceFrom",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-24"
+                                    />
+                                    <span>to</span>
+                                    <Input
+                                      type="number"
+                                      placeholder="To"
+                                      value={form.employmentDetails.experienceTo}
+                                      onChange={(e) =>
+                                        handleNestedChange(
+                                          "employmentDetails",
+                                          "experienceTo",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-24"
+                                    />
+                                    <span>Years</span>
+                                  </div>
+              
+                                  {(errors.experienceFrom || errors.experienceTo) && (
+                                    <p className="text-red-500 text-xs mt-1">
+                                      {errors.experienceFrom}<br /> {errors.experienceTo}
+                                    </p>
+                                  )}
+                                </div>
             <div>
               <label className="text-sm">Education Level</label>
               <Select
@@ -445,26 +466,56 @@ export default function EditJobModal({
   <div className="md:col-span-2 mb-4">
     <h3 className="text-xl font-semibold">Salary Information</h3>
   </div>
-  <div>
-    <label className="text-sm">Salary From</label>
-    <Input
-      name="salary_from"
-      placeholder="Minimum salary"
-      value={form.salary_from}
-      onChange={handleChange}
-      type="number"
-    />
-  </div>
-  <div>
-    <label className="text-sm">Salary To</label>
-    <Input
-      name="salary_to"
-      placeholder="Maximum salary"
-      value={form.salary_to}
-      onChange={handleChange}
-      type="number"
-    />
-  </div>
+ 
+       {/* Salary */}
+                     <div>
+                       <label className="text-sm">Annual Salary</label>
+                       <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                         <Select
+                           value={form.salary.currency}
+                           onValueChange={(value) =>
+                             handleNestedChange("salary", "currency", value)
+                           }
+                         >
+                           <SelectTrigger>
+                             <SelectValue placeholder="Select Currency" />
+                           </SelectTrigger>
+                           <SelectContent>
+                             {currencyOptions.map((currency) => (
+                               <SelectItem key={currency} value={currency}>
+                                 {currency}
+                               </SelectItem>
+                             ))}
+                           </SelectContent>
+                         </Select>
+   
+                         {/* FROM */}
+                         <input
+                           type="number"
+                           placeholder="Min salary"
+                           value={form.salary.from}
+                            onChange={(e) => {
+       const val = e.target.value;
+       handleNestedChange("salary", "from", val === "" ? "" : Number(val));
+     }}
+                         />
+                         <span>To</span>
+   
+                         {/* TO */}
+                         <input
+                           type="number"
+                           placeholder="Max salary"
+                           value={form.salary.to}
+                             onChange={(e) => {
+       const val = e.target.value;
+       handleNestedChange("salary", "to", val === "" ? "" : Number(val));
+     }}
+                         /> lacs
+                       </div>
+                       {errors.salaryRange && (
+                         <p className="text-red-500 text-xs mt-1">{errors.salaryRange}</p>
+                       )}
+                     </div>
 </div>
 
 <div className="mt-5 md:mt-5">
@@ -511,3 +562,4 @@ export default function EditJobModal({
     </Dialog>
   );
 }
+

@@ -606,3 +606,4 @@ export const CandidateManual = ({
     </form>
   );
 };
+

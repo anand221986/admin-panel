@@ -68,7 +68,7 @@ export default function CandidateHeaderCard({
   const linkedInUrl =
     linkedIn && !linkedIn.startsWith("http") ? `https://${linkedIn}` : linkedIn;
 
-  const FILE_SERVER_URL = "http://13.51.235.31";
+  const FILE_SERVER_URL = "http://16.171.117.2";
   const fullResumeUrl = resume_url
     ? `${FILE_SERVER_URL}/ats-api/uploads/${resume_url}`
     : null;

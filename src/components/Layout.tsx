@@ -149,9 +149,9 @@ export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const userDetails = getUserDetails();
  
-  console.log( userDetails.name,'userDetails')
+  console.log( userDetails?.name,'userDetails')
   const [user] = useState({
-    name: userDetails.name,
+    name: userDetails?.name || "Guest User",
     avatarUrl:
       "https://ui-avatars.com/api/?name=John+Doe&background=4f46e5&color=fff",
   });

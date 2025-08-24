@@ -39,16 +39,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
 import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateFieldsModal";
 import AssignToJobModal from "@/components/modals/AssigntoJobModal";
-import {
-  ALL_COLUMNS,
-  TABS,
-  getStatusColor,
-  getRecruiterStatusColor,
-} from "@/lib/candidate-config";
+import { ALL_COLUMNS, TABS } from "@/lib/candidate-config";
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
+import PitchClientModal from "@/components/modals/PitchClientModal";
 
 const API_BASE_URL = "http://16.171.117.2:3000";
-const FILE_SERVER_URL = "http://13.51.235.31";
+const FILE_SERVER_URL = "http://16.171.117.2";
 
 const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
 
@@ -106,6 +102,7 @@ interface CandidateViewListProps {
   jobId: number;
   candidates: CandidateForm[];
   fetchCandidates: () => void;
+  initialCandidateId?: number | null;
 }
 
 const formatCandidateAddress = (address: string): string => {
@@ -221,9 +218,11 @@ export default function CandidateViewList({
   jobId,
   candidates,
   fetchCandidates,
+  initialCandidateId,
 }: CandidateViewListProps) {
   const [localCandidates, setLocalCandidates] = useState<CandidateForm[]>([]);
   const [isAddModalOpen, setAddModalOpen] = useState(false);
+  const [isPitchModalOpen, setIsPitchModalOpen] = useState(false);
   const [expandedCandidates, setExpandedCandidates] = useState<Set<number>>(
     new Set()
   );
@@ -233,10 +232,50 @@ export default function CandidateViewList({
   const [recruiterStatuses, setRecruiterStatuses] = useState<StatusOption[]>(
     []
   );
+  
+  // Context menu state for candidate name right-click
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    candidateId: number;
+  } | null>(null);
 
   useEffect(() => {
     setLocalCandidates(candidates);
   }, [candidates]);
+
+  // Close context menu when clicking elsewhere
+  useEffect(() => {
+    if (!contextMenu) return;
+    
+    const handleClick = () => setContextMenu(null);
+    const handleScroll = () => setContextMenu(null);
+    
+    document.addEventListener('click', handleClick);
+    document.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      document.removeEventListener('click', handleClick);
+      document.removeEventListener('scroll', handleScroll);
+    };
+  }, [contextMenu]);
+
+  // Automatically open modal for candidate from URL parameter
+  useEffect(() => {
+    if (initialCandidateId && candidates.length > 0) {
+      const candidate = candidates.find(c => c.id === initialCandidateId);
+      if (candidate) {
+        setSelectedCandidate(candidate);
+        setProfileModalOpen(true);
+        // Remove the URL parameter after opening the modal
+        if (window.history && window.history.replaceState) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('candidateId');
+          window.history.replaceState({}, '', url.toString());
+        }
+      }
+    }
+  }, [initialCandidateId, candidates]);
 
   useEffect(() => {
     const fetchAllStatuses = async () => {
@@ -278,6 +317,14 @@ export default function CandidateViewList({
     });
   };
 
+  const handlePitch = () => {
+    if (selected.size === 0) {
+      toast.info("Please select at least one candidate to pitch.");
+      return;
+    }
+    setIsPitchModalOpen(true);
+  };
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -295,6 +342,11 @@ export default function CandidateViewList({
 
   const lowerTerm = searchQuery.toLowerCase().trim();
   const safe = (s?: string | null) => s?.toLowerCase() ?? "";
+
+  const selectedCandidatesData = useMemo(
+    () => localCandidates.filter((c) => selected.has(c.id)),
+    [localCandidates, selected]
+  );
 
   const filtered = useMemo(
     () =>
@@ -506,6 +558,9 @@ export default function CandidateViewList({
               <Button size="sm" onClick={handleEdit} variant="outline">
                 Update fields
               </Button>
+              <Button size="sm" variant="outline" onClick={handlePitch}>
+                Pitch to Client
+              </Button>
               <Button size="sm" variant="outline">
                 Email
               </Button>
@@ -626,6 +681,14 @@ export default function CandidateViewList({
                                 onClick={() => {
                                   setSelectedCandidate(candidate);
                                   setProfileModalOpen(true);
+                                }}
+                                onContextMenu={(e) => {
+                                  e.preventDefault();
+                                  setContextMenu({
+                                    x: e.clientX,
+                                    y: e.clientY,
+                                    candidateId: candidate.id
+                                  });
                                 }}
                                 className="whitespace-nowrap text-sm font-medium text-slate-600 focus:outline-none hover:underline"
                               >
@@ -1005,6 +1068,37 @@ export default function CandidateViewList({
           </Button>
         </CardContent>
       )}
+     
+      {contextMenu && (
+        <div
+          style={{
+            position: 'fixed',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            backgroundColor: 'white',
+            border: '1px solid #e2e8f0',
+            borderRadius: '6px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            zIndex: 50,
+            minWidth: '160px',
+            padding: '4px 0'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+            onClick={() => {
+              // Open candidates page with candidate ID parameter in new tab
+              const url = `/candidates?candidateId=${contextMenu.candidateId}`;
+              window.open(url, '_blank');
+              setContextMenu(null);
+            }}
+          >
+            Open in new tab
+          </div>
+        </div>
+      )}
+
       <AddCandidateModal
         open={isAddModalOpen}
         jobId={jobId}
@@ -1020,6 +1114,19 @@ export default function CandidateViewList({
         candidate={selectedCandidate}
         fetchCandidates={fetchCandidates}
       />
+      <PitchClientModal
+        open={isPitchModalOpen}
+        onOpenChange={setIsPitchModalOpen}
+        selectedCandidates={selectedCandidatesData}
+        onSuccess={() => {
+          setIsPitchModalOpen(false);
+          setSelected(new Set());
+          toast.success(
+            `${selectedCandidatesData.length} candidate(s) have been pitched successfully!`
+          );
+        }}
+      />
     </div>
   );
 }
+

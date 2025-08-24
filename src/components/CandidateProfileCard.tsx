@@ -48,20 +48,39 @@ interface CandidateProfile {
 interface ProfileCardProps {
   candidate: CandidateProfile;
   fetchCandidates: () => void;
+  onEditModeChange?: (isEdit: boolean) => void;
 }
 
 export default function CandidateProfileCard({
   candidate,
   fetchCandidates,
+  onEditModeChange,
 }: ProfileCardProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [jobOpen, setJobOpen] = useState(false);
+
+  const handleEditOpen = () => {
+    if (onEditModeChange) {
+      // Use inline edit mode instead of modal
+      onEditModeChange(true);
+    } else {
+      // Fallback to modal if no inline mode available
+      setEditOpen(true);
+    }
+  };
+
+  const handleEditClose = () => {
+    setEditOpen(false);
+    if (onEditModeChange) {
+      onEditModeChange(false);
+    }
+  };
 
   return (
     <div className="min-w-full min-h-full p-3 font-sans">
       <CandidateHeaderCard
         candidate={candidate}
-        onEdit={() => setEditOpen(true)}
+        onEdit={handleEditOpen}
       />
 
       <JobsCard
@@ -93,11 +112,11 @@ export default function CandidateProfileCard({
       {editOpen && (
         <EditCandidateModal
           isOpen={editOpen}
-          onOpenChange={setEditOpen}
+          onOpenChange={handleEditClose}
           candidate={candidate}
           onSaveSuccess={() => {
             fetchCandidates();
-            setEditOpen(false);
+            handleEditClose();
           }}
         />
       )}
