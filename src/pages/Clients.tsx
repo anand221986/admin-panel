@@ -38,6 +38,30 @@ import axios from "axios";
 const API_BASE_URL = "http://16.171.117.2:3000";
 
 // API interfaces based on backend structure
+interface BackendClient {
+  id: number;
+  name: string;
+  website?: string;
+  careers_page?: string;
+  street1?: string;
+  street2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipcode?: string;
+  linkedin?: string;
+  phone?: string;
+  tags?: string[];
+  industry?: string;
+  size?: number | null;
+  currency?: string | null;
+  revenue?: number | null;
+  created_dt?: string;
+  updated_dt?: string;
+  email?: string;
+  contact_person?: string;
+}
+
 interface Client {
   id: number;
   name: string;
@@ -53,6 +77,19 @@ interface Client {
   logo?: string;
   created_at?: string;
   updated_at?: string;
+  website?: string;
+  linkedin?: string;
+  tags?: string[];
+  street1?: string;
+  street2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipcode?: string;
+  careers_page?: string;
+  size?: number | null;
+  currency?: string | null;
+  revenue?: number | null;
 }
 
 interface Prospect {
@@ -130,21 +167,43 @@ const Clients = () => {
   const fetchClients = async () => {
     try {
       setLoading(true);
-      // For now, we'll fetch a few clients by ID since we don't have a "get all" endpoint
-      const clientIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // Try multiple IDs
-      const promises = clientIds.map(async (id) => {
-        try {
-          const response = await axios.get(`${API_BASE_URL}/client/${id}`);
-          return response.data.result;
-        } catch (error) {
-          // Client doesn't exist, ignore
-          return null;
-        }
-      });
-      
-      const results = await Promise.all(promises);
-      const validClients = results.filter(client => client !== null);
-      setClientsList(validClients);
+      // Use the getAllClient endpoint to fetch all clients
+      const response = await axios.get(`${API_BASE_URL}/client/getAllClient`);
+      if (response.data.status && Array.isArray(response.data.result)) {
+        // Map the backend fields to frontend expectations
+        const mappedClients = response.data.result.map((client: BackendClient) => ({
+          id: client.id,
+          name: client.name,
+          industry: client.industry,
+          location: `${client.city}, ${client.state}, ${client.country}`,
+          contact_person: client.contact_person,
+          email: client.email,
+          phone: client.phone,
+          status: "Active", // Default status since it's not in API
+          active_jobs: 0, // Default value since it's not in API
+          total_hires: 0, // Default value since it's not in API
+          joined_date: client.created_dt,
+          logo: generateLogo(client.name),
+          created_at: client.created_dt,
+          updated_at: client.updated_dt,
+          website: client.website,
+          linkedin: client.linkedin,
+          tags: client.tags || [],
+          street1: client.street1,
+          street2: client.street2,
+          city: client.city,
+          state: client.state,
+          country: client.country,
+          zipcode: client.zipcode,
+          careers_page: client.careers_page,
+          size: client.size,
+          currency: client.currency,
+          revenue: client.revenue
+        }));
+        setClientsList(mappedClients);
+      } else {
+        setClientsList([]);
+      }
     } catch (error) {
       console.error("Error fetching clients:", error);
       toast({
@@ -152,6 +211,7 @@ const Clients = () => {
         description: "Failed to fetch clients",
         variant: "destructive",
       });
+      setClientsList([]);
     } finally {
       setLoading(false);
     }
@@ -175,16 +235,17 @@ const Clients = () => {
     }
   };
 
-  const updateClient = async (clientId: number, updatedData: Partial<Client>) => {
+  const updateClient = async (clientId: number, updatedData: Partial<BackendClient>) => {
     try {
       const response = await axios.put(`${API_BASE_URL}/client/${clientId}`, updatedData);
-      setClientsList(prev => prev.map(client => 
-        client.id === clientId ? { ...client, ...response.data.result } : client
-      ));
-      toast({
-        title: "Success",
-        description: "Client updated successfully",
-      });
+      if (response.data.status) {
+        // Refresh the entire list to get updated data
+        await fetchClients();
+        toast({
+          title: "Success",
+          description: "Client updated successfully",
+        });
+      }
     } catch (error) {
       console.error("Error updating client:", error);
       toast({
