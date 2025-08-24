@@ -21,6 +21,7 @@ import {
   TrendingUp,
   MessageCircle,
   Send,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,132 +31,59 @@ import {
 } from "@/components/ui/dropdown-menu";
 import EditClientModal from "@/components/modals/EditClientModal";
 import AddClientModal from "@/components/modals/AddClientModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import axios from "axios";
 
-const clients = [
-  {
-    id: 1,
-    name: "TechCorp Solutions",
-    industry: "Technology",
-    location: "San Francisco, CA",
-    contactPerson: "Sarah Mitchell",
-    email: "sarah.mitchell@techcorp.com",
-    phone: "+1 (555) 123-4567",
-    status: "Active",
-    activeJobs: 5,
-    totalHires: 23,
-    joinedDate: "Jan 2024",
-    logo: "TC",
-  },
-  {
-    id: 2,
-    name: "Healthcare Plus",
-    industry: "Healthcare",
-    location: "New York, NY",
-    contactPerson: "Dr. James Wilson",
-    email: "j.wilson@healthcareplus.com",
-    phone: "+1 (555) 987-6543",
-    status: "Active",
-    activeJobs: 3,
-    totalHires: 12,
-    joinedDate: "Mar 2024",
-    logo: "HP",
-  },
-  {
-    id: 3,
-    name: "FinanceFlow Inc",
-    industry: "Finance",
-    location: "Chicago, IL",
-    contactPerson: "Emma Rodriguez",
-    email: "emma.r@financeflow.com",
-    phone: "+1 (555) 456-7890",
-    status: "Active",
-    activeJobs: 2,
-    totalHires: 8,
-    joinedDate: "Feb 2024",
-    logo: "FF",
-  },
-  {
-    id: 4,
-    name: "Creative Studios",
-    industry: "Marketing",
-    location: "Los Angeles, CA",
-    contactPerson: "Alex Chen",
-    email: "alex@creativestudios.com",
-    phone: "+1 (555) 321-0987",
-    status: "Inactive",
-    activeJobs: 0,
-    totalHires: 15,
-    joinedDate: "Dec 2023",
-    logo: "CS",
-  },
-  {
-    id: 5,
-    name: "RetailMax Group",
-    industry: "Retail",
-    location: "Seattle, WA",
-    contactPerson: "Lisa Thompson",
-    email: "lisa.t@retailmax.com",
-    phone: "+1 (555) 654-3210",
-    status: "Pending",
-    activeJobs: 1,
-    totalHires: 0,
-    joinedDate: "May 2024",
-    logo: "RM",
-  },
-];
+const API_BASE_URL = "http://16.171.117.2:3000";
 
-const prospectClients = [
-  {
-    id: 1,
-    name: "InnovateTech Solutions",
-    industry: "Technology",
-    location: "Austin, TX",
-    contactPerson: "Michael Johnson",
-    email: "m.johnson@innovatetech.com",
-    phone: "+1 (555) 234-5678",
-    status: "Hot",
-    potentialValue: "$50,000",
-    lastContact: "2 days ago",
-    nextFollowUp: "Tomorrow",
-    source: "LinkedIn",
-    interestLevel: 4,
-    logo: "IT",
-  },
-  {
-    id: 2,
-    name: "GreenEnergy Corp",
-    industry: "Energy",
-    location: "Denver, CO",
-    contactPerson: "Sarah Davis",
-    email: "sarah.d@greenenergy.com",
-    phone: "+1 (555) 345-6789",
-    status: "Warm",
-    potentialValue: "$75,000",
-    lastContact: "1 week ago",
-    nextFollowUp: "Next Monday",
-    source: "Referral",
-    interestLevel: 3,
-    logo: "GE",
-  },
-  {
-    id: 3,
-    name: "UrbanDesign Studio",
-    industry: "Architecture",
-    location: "Portland, OR",
-    contactPerson: "Alex Kim",
-    email: "alex@urbandesign.com",
-    phone: "+1 (555) 456-7890",
-    status: "Cold",
-    potentialValue: "$30,000",
-    lastContact: "2 weeks ago",
-    nextFollowUp: "This Friday",
-    source: "Website",
-    interestLevel: 2,
-    logo: "UD",
-  },
-];
+// API interfaces based on backend structure
+interface Client {
+  id: number;
+  name: string;
+  industry?: string;
+  location?: string;
+  contact_person?: string;
+  email?: string;
+  phone?: string;
+  status?: string;
+  active_jobs?: number;
+  total_hires?: number;
+  joined_date?: string;
+  logo?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface Prospect {
+  id: number;
+  name: string;
+  industry?: string;
+  location?: string;
+  contact_person?: string;
+  email?: string;
+  phone?: string;
+  status?: string;
+  potential_value?: string;
+  last_contact?: string;
+  next_follow_up?: string;
+  source?: string;
+  interest_level?: number;
+  logo?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Helper functions
+const generateLogo = (name: string) => {
+  return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+};
+
+const formatDate = (dateString: string) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  return date.getFullYear().toString();
+};
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -189,39 +117,143 @@ const getInterestStars = (level) => {
 
 const Clients = () => {
   const { toast } = useToast();
-  const [editingClient, setEditingClient] = useState(null);
+  const [editingClient, setEditingClient] = useState<Client | Prospect | null>(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
   const [isProspectEdit, setIsProspectEdit] = useState(false);
-  const [clientsList, setClientsList] = useState(clients);
-  const [prospectsList, setProspectsList] = useState(prospectClients);
+  const [clientsList, setClientsList] = useState<Client[]>([]);
+  const [prospectsList, setProspectsList] = useState<Prospect[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleEditClient = (client, isProspect = false) => {
+  // API Functions
+  const fetchClients = async () => {
+    try {
+      setLoading(true);
+      // For now, we'll fetch a few clients by ID since we don't have a "get all" endpoint
+      const clientIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // Try multiple IDs
+      const promises = clientIds.map(async (id) => {
+        try {
+          const response = await axios.get(`${API_BASE_URL}/client/${id}`);
+          return response.data.result;
+        } catch (error) {
+          // Client doesn't exist, ignore
+          return null;
+        }
+      });
+      
+      const results = await Promise.all(promises);
+      const validClients = results.filter(client => client !== null);
+      setClientsList(validClients);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch clients",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteClient = async (clientId: number) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/client/${clientId}`);
+      setClientsList(prev => prev.filter(client => client.id !== clientId));
+      toast({
+        title: "Success",
+        description: "Client deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete client",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateClient = async (clientId: number, updatedData: Partial<Client>) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/client/${clientId}`, updatedData);
+      setClientsList(prev => prev.map(client => 
+        client.id === clientId ? { ...client, ...response.data.result } : client
+      ));
+      toast({
+        title: "Success",
+        description: "Client updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating client:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update client",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Load clients on component mount
+  useEffect(() => {
+    fetchClients();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Helper functions
+  const generateLogo = (name: string) => {
+    const words = name.split(' ');
+    if (words.length >= 2) {
+      return words[0][0] + words[1][0];
+    }
+    return name.slice(0, 2);
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', { 
+        month: 'short', 
+        year: 'numeric' 
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Filter clients based on search term
+  const filteredClients = clientsList.filter(client =>
+    client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.contact_person?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleEditClient = (client: Client | Prospect, isProspect = false) => {
     setEditingClient(client);
     setIsProspectEdit(isProspect);
     setIsEditFormOpen(true);
   };
 
-  const handleSaveClient = (updatedClient) => {
+  const handleSaveClient = async (updatedClient: Client | Prospect) => {
     if (isProspectEdit) {
       setProspectsList((prev) =>
-        prev.map((p) => (p.id === updatedClient.id ? updatedClient : p))
+        prev.map((p) => (p.id === updatedClient.id ? updatedClient as Prospect : p))
       );
       toast({
         title: "Prospect Updated",
         description: `${updatedClient.name} has been updated.`,
       });
     } else {
-      setClientsList((prev) =>
-        prev.map((c) => (c.id === updatedClient.id ? updatedClient : c))
-      );
-      toast({
-        title: "Client Updated",
-        description: `${updatedClient.name} has been updated.`,
-      });
+      await updateClient(updatedClient.id, updatedClient as Client);
     }
     setIsEditFormOpen(false);
     setEditingClient(null);
+  };
+
+  const handleDeleteClient = async (clientId: number, clientName: string) => {
+    if (window.confirm(`Are you sure you want to delete ${clientName}?`)) {
+      await deleteClient(clientId);
+    }
   };
 
   const handleWhatsAppConnect = (phone, name, isProspect = false) => {
@@ -317,6 +349,8 @@ const Clients = () => {
                     <Input
                       placeholder="Search clients..."
                       className="pl-10 bg-white/80"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                   <div className="flex gap-2">
@@ -335,178 +369,200 @@ const Clients = () => {
             </Card>
 
             {/* Clients List */}
-            <div className="space-y-4">
-              {clientsList.map((client) => (
-                <Card
-                  key={client.id}
-                  className="border-0 shadow-sm bg-white/60 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-start gap-4">
-                        <Avatar className="w-16 h-16">
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-lg font-bold">
-                            {client.logo}
-                          </AvatarFallback>
-                        </Avatar>
+            {loading ? (
+              <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-center h-32">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <span className="ml-2">Loading clients...</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : filteredClients.length === 0 ? (
+              <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <div className="text-center text-gray-500">
+                    {searchTerm ? "No clients found matching your search." : "No clients found."}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {filteredClients.map((client) => (
+                  <Card
+                    key={client.id}
+                    className="border-0 shadow-sm bg-white/60 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-start gap-4">
+                          <Avatar className="w-16 h-16">
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-lg font-bold">
+                              {client.logo || generateLogo(client.name)}
+                            </AvatarFallback>
+                          </Avatar>
 
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-semibold text-slate-800">
-                              {client.name}
-                            </h3>
-                            <Badge className={getStatusColor(client.status)}>
-                              {client.status}
-                            </Badge>
-                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-xl font-semibold text-slate-800">
+                                {client.name}
+                              </h3>
+                              <Badge className={getStatusColor(client.status || "Active")}>
+                                {client.status || "Active"}
+                              </Badge>
+                            </div>
 
-                          <p className="text-slate-600 font-medium mb-3">
-                            {client.industry}
-                          </p>
+                            <p className="text-slate-600 font-medium mb-3">
+                              {client.industry || "N/A"}
+                            </p>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <Building2 className="w-4 h-4" />
-                              <span className="font-medium">
-                                {client.contactPerson}
-                              </span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                              <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <Building2 className="w-4 h-4" />
+                                <span className="font-medium">
+                                  {client.contact_person || "N/A"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <MapPin className="w-4 h-4" />
+                                {client.location || "N/A"}
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <Mail className="w-4 h-4" />
+                                {client.email || "N/A"}
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <Phone className="w-4 h-4" />
+                                {client.phone || "N/A"}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <MapPin className="w-4 h-4" />
-                              {client.location}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <Mail className="w-4 h-4" />
-                              {client.email}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <Phone className="w-4 h-4" />
-                              {client.phone}
-                            </div>
-                          </div>
 
-                          <div className="flex items-center gap-6 text-sm">
-                            <div className="flex items-center gap-1">
-                              <Briefcase className="w-4 h-4 text-blue-500" />
-                              <span className="font-medium text-slate-800">
-                                {client.activeJobs}
-                              </span>
-                              <span className="text-slate-600">
-                                Active Jobs
+                            <div className="flex items-center gap-6 text-sm">
+                              <div className="flex items-center gap-1">
+                                <Briefcase className="w-4 h-4 text-blue-500" />
+                                <span className="font-medium text-slate-800">
+                                  {client.active_jobs || 0}
+                                </span>
+                                <span className="text-slate-600">
+                                  Active Jobs
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Users className="w-4 h-4 text-green-500" />
+                                <span className="font-medium text-slate-800">
+                                  {client.total_hires || 0}
+                                </span>
+                                <span className="text-slate-600">
+                                  Total Hires
+                                </span>
+                              </div>
+                              <span className="text-slate-500">
+                                Client since {formatDate(client.joined_date || client.created_at)}
                               </span>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Users className="w-4 h-4 text-green-500" />
-                              <span className="font-medium text-slate-800">
-                                {client.totalHires}
-                              </span>
-                              <span className="text-slate-600">
-                                Total Hires
-                              </span>
-                            </div>
-                            <span className="text-slate-500">
-                              Client since {client.joinedDate}
-                            </span>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-white/80"
-                          onClick={() =>
-                            handleWhatsAppConnect(
-                              client.phone,
-                              client.contactPerson,
-                              false
-                            )
-                          }
-                        >
-                          <MessageCircle className="w-4 h-4 mr-1" />
-                          WhatsApp
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-white/80"
-                          onClick={() =>
-                            handleEmailConnect(
-                              client.email,
-                              client.contactPerson,
-                              false
-                            )
-                          }
-                        >
-                          <Send className="w-4 h-4 mr-1" />
-                          Email
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-white/80"
-                        >
-                          View Jobs
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          Contact
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="bg-white/95 backdrop-blur-sm"
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-white/80"
+                            onClick={() =>
+                              handleWhatsAppConnect(
+                                client.phone || "",
+                                client.contact_person || client.name,
+                                false
+                              )
+                            }
                           >
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleWhatsAppConnect(
-                                  client.phone,
-                                  client.contactPerson,
-                                  false
-                                )
-                              }
+                            <MessageCircle className="w-4 h-4 mr-1" />
+                            WhatsApp
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-white/80"
+                            onClick={() =>
+                              handleEmailConnect(
+                                client.email || "",
+                                client.contact_person || client.name,
+                                false
+                              )
+                            }
+                          >
+                            <Send className="w-4 h-4 mr-1" />
+                            Email
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-white/80"
+                          >
+                            View Jobs
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            Contact
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="bg-white/95 backdrop-blur-sm"
                             >
-                              <MessageCircle className="w-4 h-4 mr-2" />
-                              WhatsApp Connect
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleEmailConnect(
-                                  client.email,
-                                  client.contactPerson,
-                                  false
-                                )
-                              }
-                            >
-                              <Send className="w-4 h-4 mr-2" />
-                              Email Connect
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleEditClient(client, false)}
-                            >
-                              Edit Client
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>View Contract</DropdownMenuItem>
-                            <DropdownMenuItem>Send Report</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              Archive Client
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleWhatsAppConnect(
+                                    client.phone || "",
+                                    client.contact_person || client.name,
+                                    false
+                                  )
+                                }
+                              >
+                                <MessageCircle className="w-4 h-4 mr-2" />
+                                WhatsApp Connect
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleEmailConnect(
+                                    client.email || "",
+                                    client.contact_person || client.name,
+                                    false
+                                  )
+                                }
+                              >
+                                <Send className="w-4 h-4 mr-2" />
+                                Email Connect
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleEditClient(client, false)}
+                              >
+                                Edit Client
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>View Contract</DropdownMenuItem>
+                              <DropdownMenuItem>Send Report</DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => handleDeleteClient(client.id, client.name)}
+                              >
+                                Delete Client
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* Prospects Tab */}
@@ -565,7 +621,7 @@ const Clients = () => {
                               {prospect.status}
                             </Badge>
                             <div className="flex items-center gap-1">
-                              {getInterestStars(prospect.interestLevel)}
+                              {getInterestStars(prospect.interest_level || 0)}
                             </div>
                           </div>
 
@@ -577,7 +633,7 @@ const Clients = () => {
                             <div className="flex items-center gap-2 text-sm text-slate-600">
                               <Building2 className="w-4 h-4" />
                               <span className="font-medium">
-                                {prospect.contactPerson}
+                                {prospect.contact_person || "N/A"}
                               </span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -595,7 +651,7 @@ const Clients = () => {
                             <div className="flex items-center gap-2 text-sm text-slate-600">
                               <DollarSign className="w-4 h-4" />
                               <span className="font-medium">
-                                {prospect.potentialValue}
+                                ${prospect.potential_value || 0}
                               </span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -608,13 +664,13 @@ const Clients = () => {
                             <div className="flex items-center gap-1">
                               <Calendar className="w-4 h-4 text-blue-500" />
                               <span className="text-slate-600">
-                                Last Contact: {prospect.lastContact}
+                                Last Contact: {prospect.last_contact || "N/A"}
                               </span>
                             </div>
                             <div className="flex items-center gap-1">
                               <Calendar className="w-4 h-4 text-orange-500" />
                               <span className="text-slate-600">
-                                Next Follow-up: {prospect.nextFollowUp}
+                                Next Follow-up: {prospect.next_follow_up || "N/A"}
                               </span>
                             </div>
                           </div>
@@ -629,7 +685,7 @@ const Clients = () => {
                           onClick={() =>
                             handleWhatsAppConnect(
                               prospect.phone,
-                              prospect.contactPerson,
+                              prospect.contact_person || prospect.name,
                               true
                             )
                           }
@@ -644,7 +700,7 @@ const Clients = () => {
                           onClick={() =>
                             handleEmailConnect(
                               prospect.email,
-                              prospect.contactPerson,
+                              prospect.contact_person || prospect.name,
                               true
                             )
                           }
@@ -679,7 +735,7 @@ const Clients = () => {
                               onClick={() =>
                                 handleWhatsAppConnect(
                                   prospect.phone,
-                                  prospect.contactPerson,
+                                  prospect.contact_person || prospect.name,
                                   true
                                 )
                               }
@@ -691,7 +747,7 @@ const Clients = () => {
                               onClick={() =>
                                 handleEmailConnect(
                                   prospect.email,
-                                  prospect.contactPerson,
+                                  prospect.contact_person || prospect.name,
                                   true
                                 )
                               }
