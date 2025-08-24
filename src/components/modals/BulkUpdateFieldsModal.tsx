@@ -13,7 +13,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
 import axios from "axios";
@@ -28,7 +28,18 @@ interface BulkUpdateFieldsModalProps {
   onSuccess?: () => void;
 }
 
+interface StatusOption {
+  id: number;
+  name: string;
+  type: "candidate" | "recruiter";
+  is_active: boolean;
+  color: string;
+}
+
 const fieldOptions = [
+  { key: "status", label: "Status" },
+  { key: "recruiter_status", label: "Recruiter Status" },
+  { key: "hmapproval", label: "HM Approval" },
   { key: "rating", label: "Rating" },
   { key: "current_ctc", label: "Current CTC" },
   { key: "expected_ctc", label: "Expected CTC" },
@@ -66,6 +77,12 @@ const dropdownOptions: Record<string, { value: string; label: string }[]> = {
     { value: "60 days", label: "60 days" },
     { value: "90 days", label: "90 days" },
   ],
+  hmapproval: [
+    { value: "Pending", label: "Pending" },
+    { value: "Approved", label: "Approved" },
+    { value: "Rejected", label: "Rejected" },
+    { value: "Not Required", label: "Not Required" },
+  ],
 };
 
 export function BulkUpdateFieldsModal({
@@ -77,12 +94,34 @@ export function BulkUpdateFieldsModal({
   const initial = [{ field: "", action: "", value: "" }];
   const [updates, setUpdates] = useState(initial);
   const [saving, setSaving] = useState(false);
+  const [statusOptions, setStatusOptions] = useState<StatusOption[]>([]);
+  const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
+
+  const fetchStatusOptions = useCallback(async () => {
+    if (isLoadingStatuses) return;
+    
+    setIsLoadingStatuses(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/candidate/getAllStatus`);
+      if (response.data && Array.isArray(response.data.result)) {
+        setStatusOptions(response.data.result.filter((status: StatusOption) => status.is_active));
+      }
+    } catch (error) {
+      console.error("Failed to fetch status options:", error);
+      toast.error("Failed to load status options");
+    } finally {
+      setIsLoadingStatuses(false);
+    }
+  }, [isLoadingStatuses]);
 
   useEffect(() => {
     if (open) {
-      setUpdates(initial);
+      setUpdates([{ field: "", action: "", value: "" }]);
+      if (statusOptions.length === 0) {
+        fetchStatusOptions();
+      }
     }
-  }, [open]);
+  }, [open, statusOptions.length, fetchStatusOptions]);
 
   const addRow = () =>
     setUpdates((u) => [...u, { field: "", action: "", value: "" }]);
@@ -91,8 +130,26 @@ export function BulkUpdateFieldsModal({
     setUpdates((prev) => prev.filter((_, id) => id !== idremove));
   };
 
+  const getFieldOptions = (field: string) => {
+    if (field === "status") {
+      return statusOptions
+        .filter(status => status.type === "candidate")
+        .map(status => ({ value: status.name, label: status.name }));
+    }
+    if (field === "recruiter_status") {
+      return statusOptions
+        .filter(status => status.type === "recruiter") 
+        .map(status => ({ value: status.name, label: status.name }));
+    }
+    return dropdownOptions[field] || [];
+  };
+
+  const isDropdownField = (field: string) => {
+    return field === "status" || field === "recruiter_status" || dropdownOptions[field];
+  };
+
   const handleSave = async () => {
-    for (let { field, action, value } of updates) {
+    for (const { field, action, value } of updates) {
       if (!field) {
         toast.error("Please select a field for every row.");
         return;
@@ -175,7 +232,7 @@ export function BulkUpdateFieldsModal({
                 </SelectContent>
               </Select>
 
-              {u.action === "change_to" && dropdownOptions[u.field] ? (
+              {u.action === "change_to" && isDropdownField(u.field) ? (
                 <Select
                   value={u.value}
                   onValueChange={(value) =>
@@ -183,12 +240,17 @@ export function BulkUpdateFieldsModal({
                       cur.map((x, j) => (j === i ? { ...x, value } : x))
                     )
                   }
+                  disabled={isLoadingStatuses && (u.field === "status" || u.field === "recruiter_status")}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select value" />
+                    <SelectValue placeholder={
+                      isLoadingStatuses && (u.field === "status" || u.field === "recruiter_status")
+                        ? "Loading..."
+                        : "Select value"
+                    } />
                   </SelectTrigger>
                   <SelectContent>
-                    {dropdownOptions[u.field].map(({ value, label }) => (
+                    {getFieldOptions(u.field).map(({ value, label }) => (
                       <SelectItem key={value} value={value}>
                         {label}
                       </SelectItem>
