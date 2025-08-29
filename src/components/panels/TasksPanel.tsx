@@ -27,8 +27,8 @@ export function TasksPanel({
 }: TasksPanelProps) {
   const [taskName, setTaskName] = useState("");
   const [description, setDescription] = useState("");
-  const [associatedWith, setAssociatedWith] = useState("Zenith Accufore");
-  const [assignedTo, setAssignedTo] = useState("anand gupta");
+  const [associatedWith, setAssociatedWith] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
   const [type, setType] = useState("call");
   const [dueDate, setDueDate] = useState("2025-07-03");
   const [reminderDate, setReminderDate] = useState("2025-07-03");
