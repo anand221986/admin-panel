@@ -1,5 +1,6 @@
 import Layout from "@/components/Layout";
 import TemplatesManager from "@/components/panels/TemplatesSection";
+import IntegrationPage from "@/components/panels/IntegrationPage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ import {
   Save,
   FileText,
   ListChecks,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import { StatusSettingsTab } from "@/components/StatusSettingsTab";
 
@@ -41,7 +43,7 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 bg-white/60 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-8 bg-white/60 backdrop-blur-sm">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profile
@@ -64,6 +66,10 @@ const Settings = () => {
             <TabsTrigger value="templates" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               Templates
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <SettingsIcon className="w-4 h-4" />
+              Integrations
             </TabsTrigger>
             <TabsTrigger value="status" className="flex items-center gap-2">
               <ListChecks className="w-4 h-4" />
@@ -178,7 +184,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Company Tab */}
+          
           <TabsContent value="company">
             <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
               <CardHeader>
@@ -256,7 +262,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Notifications Tab */}
+       
           <TabsContent value="notifications">
             <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
               <CardHeader>
@@ -329,7 +335,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Email Tab */}
+        
           <TabsContent value="email">
             <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
               <CardHeader>
@@ -396,17 +402,22 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Templates Tab */}
+        
           <TabsContent value="templates">
             <TemplatesManager />
           </TabsContent>
 
-          {/* Status Tab */}
+          {/* Integrations Tab */}
+          <TabsContent value="integrations">
+            <IntegrationPage />
+          </TabsContent>
+
+          
           <TabsContent value="status">
             <StatusSettingsTab />
           </TabsContent>
 
-          {/* Security Tab */}
+        
           <TabsContent value="security">
             <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
               <CardHeader>

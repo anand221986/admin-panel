@@ -305,6 +305,89 @@ export default function CandidateViewList({
     fetchAllStatuses();
   }, []);
 
+  // Function to get relevant recruiter statuses based on candidate status
+  const getRelevantRecruiterStatuses = (candidateStatus: string): StatusOption[] => {
+    const statusMappings: { [key: string]: string[] } = {
+      // Early stage candidate statuses
+      "New": ["To Contact", "Contacted", "Interested", "Not Interested"],
+      "Applied": ["To Contact", "Contacted", "Phone Screening", "Follow Up"],
+      "Sourced": ["To Contact", "Contacted", "Interested", "Not Interested"],
+      "Screening": ["Phone Screening", "Interested", "Not Interested", "Follow Up"],
+      "Under Review": ["Client Review", "Follow Up", "Interested"],
+      
+      // Interview stage
+      "Phone Screen": ["Schedule Interview", "Interested", "Not Interested", "Follow Up"],
+      "Phone Screening": ["Schedule Interview", "Interested", "Not Interested", "Follow Up"],
+      "Interview": ["Interview Scheduled", "Follow Up", "Client Review"],
+      "Interview Scheduled": ["Interview Scheduled", "Follow Up", "Client Review"],
+      "Technical": ["Interview Scheduled", "Follow Up", "Client Review"],
+      "Technical Interview": ["Interview Scheduled", "Follow Up", "Client Review"],
+      "Panel Interview": ["Interview Scheduled", "Follow Up", "Client Review"],
+      
+      // Advanced stages
+      "Client Review": ["Client Review", "Follow Up", "Negotiating", "On Hold"],
+      "Final Interview": ["Client Review", "Negotiating", "Offer Extended", "Follow Up"],
+      "Final Round": ["Client Review", "Negotiating", "Offer Extended", "Follow Up"],
+      "Background Check": ["Client Review", "Offer Extended", "Follow Up"],
+      
+      // Offer stages
+      "Offer": ["Offer Extended", "Negotiating", "Offer Accepted", "Offer Declined"],
+      "Offer Extended": ["Offer Extended", "Negotiating", "Offer Accepted", "Offer Declined"],
+      "Negotiation": ["Negotiating", "Offer Extended", "Offer Accepted", "Offer Declined"],
+      "Offer Negotiation": ["Negotiating", "Offer Extended", "Offer Accepted", "Offer Declined"],
+      
+      // Final stages
+      "Hired": ["Offer Accepted"],
+      "Accepted": ["Offer Accepted"],
+      "Placed": ["Offer Accepted"],
+      "Rejected": ["Not Interested", "Offer Declined"],
+      "Declined": ["Not Interested", "Offer Declined"],
+      "Withdrawn": ["Not Interested"],
+      "Not Selected": ["Not Interested"],
+      
+      // Hold/backup/special statuses
+      "On Hold": ["On Hold", "Backup", "Follow Up"],
+      "Hold": ["On Hold", "Backup", "Follow Up"],
+      "Backup": ["Backup", "On Hold", "Follow Up"],
+      "Shortlisted": ["Contacted", "Schedule Interview", "Follow Up"],
+      "Submitted": ["Submitted to Client", "Client Review", "Follow Up"],
+      "Presented": ["Submitted to Client", "Client Review", "Follow Up"],
+      "Second Choice": ["Backup", "On Hold", "Follow Up"]
+    };
+
+    // Get exact match first
+    let relevantStatusNames = statusMappings[candidateStatus];
+    
+    // If no exact match, try case-insensitive matching
+    if (!relevantStatusNames) {
+      const lowerCaseStatus = candidateStatus.toLowerCase();
+      const matchingKey = Object.keys(statusMappings).find(key => 
+        key.toLowerCase() === lowerCaseStatus
+      );
+      relevantStatusNames = matchingKey ? statusMappings[matchingKey] : null;
+    }
+    
+    // If still no match, provide default based on common keywords
+    if (!relevantStatusNames) {
+      if (candidateStatus.toLowerCase().includes('interview')) {
+        relevantStatusNames = ["Interview Scheduled", "Follow Up", "Client Review"];
+      } else if (candidateStatus.toLowerCase().includes('screen')) {
+        relevantStatusNames = ["Phone Screening", "Schedule Interview", "Follow Up"];
+      } else if (candidateStatus.toLowerCase().includes('offer')) {
+        relevantStatusNames = ["Offer Extended", "Negotiating", "Offer Accepted"];
+      } else if (candidateStatus.toLowerCase().includes('review')) {
+        relevantStatusNames = ["Client Review", "Follow Up", "Interested"];
+      } else {
+        // Default fallback for unknown statuses
+        relevantStatusNames = ["To Contact", "Contacted", "Follow Up", "On Hold"];
+      }
+    }
+
+    return recruiterStatuses.filter(status => 
+      relevantStatusNames.includes(status.name)
+    );
+  };
+
   const toggleCandidateJobs = (candidateId: number) => {
     setExpandedCandidates((prev) => {
       const next = new Set(prev);
@@ -491,7 +574,7 @@ export default function CandidateViewList({
   const paginated = filtered.slice(start, start + itemsPerPage);
 
   return (
-    <div className="space-y-4 max-w-[95vw]">
+    <div className="space-y-4 w-full overflow-hidden">
       <Card className="border-0 bg-white/60 shadow-sm backdrop-blur-sm">
         <CardContent className="p-4">
           <div className="flex flex-col justify-between gap-3 sm:flex-row">
@@ -504,7 +587,7 @@ export default function CandidateViewList({
                 className="h-9 bg-white/80 pl-10"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-shrink-0">
               {TABS.map(([label, key]) => (
                 <Button
                   key={key}
@@ -522,31 +605,32 @@ export default function CandidateViewList({
           </div>
         </CardContent>
       </Card>
-      <Card className="border-0 bg-white/60 shadow-sm backdrop-blur-sm max-w-[100%]">
+      <Card className="border-0 bg-white/60 shadow-sm backdrop-blur-sm w-full overflow-hidden">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center justify-between text-lg text-slate-800">
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-lg text-slate-800">
             <div>Candidates ({filtered.length})</div>
-            <div className="flex gap-4">
-              <Button onClick={() => setIsFilterOpen(true)} variant="outline">
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => setIsFilterOpen(true)} variant="outline" size="sm">
                 <Filter className="mr-2 h-4 w-4" /> Filter Columns
               </Button>
               <Button
                 onClick={() => setAddModalOpen(true)}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                size="sm"
               >
                 <Plus className="mr-2 h-4 w-4" /> Add Candidate
               </Button>
             </div>
           </CardTitle>
           {selected.size > 0 && (
-            <div className="flex flex-wrap items-center gap-4 rounded p-2">
-              <span>{selected.size} selected</span>
+            <div className="flex flex-wrap items-center gap-2 rounded p-2 bg-blue-50 border">
+              <span className="text-sm font-medium">{selected.size} selected</span>
               <Button
                 size="sm"
                 onClick={() => setSelected(new Set())}
                 variant="outline"
               >
-                Clear Selection
+                Clear
               </Button>
               <Button
                 size="sm"
@@ -556,10 +640,10 @@ export default function CandidateViewList({
                 Add to Job
               </Button>
               <Button size="sm" onClick={handleEdit} variant="outline">
-                Update fields
+                Update
               </Button>
               <Button size="sm" variant="outline" onClick={handlePitch}>
-                Pitch to Client
+                Pitch
               </Button>
               <Button size="sm" variant="outline">
                 Email
@@ -568,7 +652,7 @@ export default function CandidateViewList({
                 WhatsApp
               </Button>
               <Button size="sm" onClick={handleDelete} variant="destructive">
-                Delete records
+                Delete
               </Button>
             </div>
           )}
@@ -592,9 +676,9 @@ export default function CandidateViewList({
           visibleColumns={visibleColumns}
           onChange={toggleColumn}
         />
-        <CardContent className="p-0">
-          <div className="max-h-[600px] overflow-auto">
-            <Table>
+        <CardContent className="p-0 overflow-hidden">
+          <div className="max-h-[600px] overflow-x-auto overflow-y-auto">
+            <Table className="w-full min-w-max">
               <TableHeader className="sticky top-0 bg-gray-50 backdrop-blur-sm z-10">
                 <TableRow>
                   <TableHead className="w-12">
@@ -727,7 +811,7 @@ export default function CandidateViewList({
                         </TableCell>
 
                         {visibleColumns.includes("job_and_stage") && (
-                          <TableCell className="min-w-[400px] py-3">
+                          <TableCell className="min-w-[300px] py-3">
                             {(candidate.jobs_assigned || []).length > 0 ? (
                               <div>
                                 {(isExpanded
@@ -805,6 +889,7 @@ export default function CandidateViewList({
                                               size="sm"
                                               variant="outline"
                                               className="h-auto p-2 text-xs min-w-[150px] justify-start"
+                                              title={`Recruiter status (filtered for ${job.status})`}
                                             >
                                               <span
                                                 className="mr-2 w-2 h-2 rounded-full"
@@ -818,7 +903,10 @@ export default function CandidateViewList({
                                             </Button>
                                           </DropdownMenuTrigger>
                                           <DropdownMenuContent>
-                                            {recruiterStatuses.map((status) => (
+                                            <div className="px-2 py-1 text-xs text-gray-500 border-b">
+                                              Relevant for "{job.status}"
+                                            </div>
+                                            {getRelevantRecruiterStatuses(job.status).map((status) => (
                                               <DropdownMenuItem
                                                 key={status.id}
                                                 onSelect={() =>
@@ -842,6 +930,11 @@ export default function CandidateViewList({
                                                 </div>
                                               </DropdownMenuItem>
                                             ))}
+                                            {getRelevantRecruiterStatuses(job.status).length === 0 && (
+                                              <div className="px-2 py-1 text-xs text-gray-400">
+                                                No relevant statuses available
+                                              </div>
+                                            )}
                                           </DropdownMenuContent>
                                         </DropdownMenu>
 
@@ -976,7 +1069,7 @@ export default function CandidateViewList({
                         )}
 
                         {visibleColumns.includes("skill") && (
-                          <TableCell className="min-w-[400px] py-2">
+                          <TableCell className="min-w-[300px] py-2">
                             <div className="flex flex-wrap gap-1">
                               {(candidate.skill || [])
                                 .slice(0, 2)
@@ -1037,36 +1130,56 @@ export default function CandidateViewList({
         </CardContent>
       </Card>
       {totalPages > 1 && (
-        <CardContent className="flex justify-center space-x-2 py-4">
+        <div className="flex flex-wrap justify-center items-center gap-2 py-4 px-4">
           <Button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => (p > 1 ? p - 1 : 1))}
             className="bg-blue-500"
+            size="sm"
           >
             Previous
           </Button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <Button
-              key={page}
-              variant={currentPage === page ? "default" : "outline"}
-              onClick={() => setCurrentPage(page)}
-              className={
-                currentPage === page
-                  ? "bg-blue-500 text-white"
-                  : "text-blue-500 bg-white"
+          <div className="flex flex-wrap gap-1 max-w-full overflow-x-auto">
+            {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
+              // Show first 3, last 3, and current page with neighbors
+              const page = i + 1;
+              const showPage = page <= 3 || page > totalPages - 3 || 
+                              Math.abs(page - currentPage) <= 1;
+              
+              if (!showPage && i === 3) {
+                return <span key="ellipsis1" className="px-2 text-gray-500">...</span>;
               }
-            >
-              {page}
-            </Button>
-          ))}
+              if (!showPage && i === totalPages - 4) {
+                return <span key="ellipsis2" className="px-2 text-gray-500">...</span>;
+              }
+              if (!showPage) return null;
+              
+              return (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "outline"}
+                  onClick={() => setCurrentPage(page)}
+                  className={
+                    currentPage === page
+                      ? "bg-blue-500 text-white"
+                      : "text-blue-500 bg-white"
+                  }
+                  size="sm"
+                >
+                  {page}
+                </Button>
+              );
+            })}
+          </div>
           <Button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => (p < totalPages ? p + 1 : p))}
             className="bg-blue-500"
+            size="sm"
           >
             Next
           </Button>
-        </CardContent>
+        </div>
       )}
      
       {contextMenu && (
