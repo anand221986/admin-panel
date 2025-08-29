@@ -164,9 +164,9 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50/30">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50/30 overflow-x-hidden">
         <AppSidebar />
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col min-w-0">
           <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 p-4">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="hover:bg-slate-100 transition-colors" />
@@ -202,7 +202,7 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
           </header>
-          <div className="flex-1 p-6">{children}</div>
+          <div className="flex-1 p-6 overflow-x-hidden">{children}</div>
         </main>
       </div>
     </SidebarProvider>
