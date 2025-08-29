@@ -1,4 +1,4 @@
-import { useState, useRef, FormEvent } from "react";
+import { useState, useRef, FormEvent,useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,7 @@ interface CandidateForm {
   password: string;
   confirm_password: string;
   role: string;
+  agency:string;
 }
 
 type CandidateFormKey = keyof CandidateForm;
@@ -31,13 +32,15 @@ const initialCandidateForm: CandidateForm = {
   password: "",
   confirm_password: "",
   role: "",
+  agency:""
 };
 
-export const CandidateManual = () => {
+export const UserManual = () => {
   const fieldRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [formData, setFormData] = useState<CandidateForm>(initialCandidateForm);
   const [errors, setErrors] = useState<Partial<Record<CandidateFormKey, string>>>({});
   const [loading, setLoading] = useState(false);
+  const [agencies, setAgencies] = useState([]);
 
   const resetForm = () => {
     setFormData(initialCandidateForm);
@@ -59,6 +62,7 @@ export const CandidateManual = () => {
       newErrors.confirm_password = "Passwords do not match";
     }
     if (!formData.role) newErrors.role = "Role is required";
+    if (!formData.agency) newErrors.agency = "Agency  is required";
 
     setErrors(newErrors);
     const firstErrorKey = Object.keys(newErrors)[0] ?? null;
@@ -95,7 +99,21 @@ export const CandidateManual = () => {
       setLoading(false);
     }
   };
-
+  const fetchAgencies = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get(`${API_BASE_URL}/agency/getAllAgencies`);
+      setAgencies(data.result || []);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch agencies.");
+    } finally {
+      setLoading(false);
+    }
+  };
+ useEffect(() => {
+    fetchAgencies();
+  }, []);
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {[
@@ -176,6 +194,32 @@ export const CandidateManual = () => {
   </Select>
   {errors.role && (
     <p className="text-sm text-red-500">{errors.role}</p>
+  )}
+</div>
+{/* Agency Select */}
+<div>
+  <label className="text-sm" htmlFor="agency">
+    Agency
+  </label>
+  <Select
+    value={formData.agency}
+    onValueChange={(value) => handleChange("agency", value)}
+  >
+    <SelectTrigger
+      className={errors.agency ? "border border-red-500" : ""}
+    >
+      <SelectValue placeholder="Select agency" />
+    </SelectTrigger>
+    <SelectContent>
+     {agencies.map((agency) => (
+            <SelectItem key={agency.id} value={agency.id.toString()}>
+              {agency.name}
+            </SelectItem>
+          ))}
+    </SelectContent>
+  </Select>
+  {errors.agency && (
+    <p className="text-sm text-red-500">{errors.agency}</p>
   )}
 </div>
 

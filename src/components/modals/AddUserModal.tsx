@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import UploadResume from "../panels/UploadResume";
 import Uploadbulk from "../panels/Uploadbulk";
 import LinkedinImPort from "../panels/LinkedinImport";
-import { CandidateManual } from "../panels/UserManual";
+import { UserManual } from "../panels/UserManual";
 
 interface AddCandidateModalProps {
   open: boolean;
@@ -42,7 +42,7 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
               </TabsTrigger>
             </TabsList> */}
             <TabsContent value="manual">
-              <CandidateManual />
+              <UserManual />
             </TabsContent>
             {/* <TabsContent value="resume">
               <UploadResume />
