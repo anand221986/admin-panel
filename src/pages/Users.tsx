@@ -197,6 +197,7 @@ export default function Users() {
         <AddCandidateModal
           open={isModalOpen}
           handleClose={() => setIsModalOpen(false)}
+          
         />
 
         <CandidateViewList

@@ -9,20 +9,32 @@ import UploadResume from "../panels/UploadResume";
 import Uploadbulk from "../panels/Uploadbulk";
 import LinkedinImPort from "../panels/LinkedinImport";
 import { UserManual } from "../panels/UserManual";
+interface CandidateForm {
+  name: string;
+  email: string;
+  phone_number: string;
+  password: string;
+  confirm_password: string;
+  role: string;
+  agency:string;
+}
 
 interface AddCandidateModalProps {
   open: boolean;
   handleClose: () => void;
+   candidate?: CandidateForm | null;   // <-- accept candidate
+  fetchCandidates: () => void; 
 }
 
-const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
+const AddCandidateModal = ({ open, handleClose,candidate, fetchCandidates }: AddCandidateModalProps) => {
+   const isEditMode = !!candidate;
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent className="sm:max-w-5xl rounded-xl overflow-hidden p-0">
         <div className="max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold mb-4">
-              Add User
+              {isEditMode ? "Edit User" : "Add User"}
             </DialogTitle>
           </DialogHeader>
 
@@ -42,7 +54,11 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
               </TabsTrigger>
             </TabsList> */}
             <TabsContent value="manual">
-              <UserManual />
+               <UserManual
+                candidate={candidate}        // pass candidate to form
+                fetchCandidates={fetchCandidates}
+                onClose={handleClose}
+              />
             </TabsContent>
             {/* <TabsContent value="resume">
               <UploadResume />

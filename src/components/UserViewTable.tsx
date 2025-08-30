@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,6 @@ import {
   DollarSign,
   GraduationCap,
   Star,
-  Plus,
 } from "lucide-react";
 import {
   Table,
@@ -38,20 +37,14 @@ import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
 import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateUserFieldsModal";
 import AssignToJobModal from "@/components/modals/AssigntoJobModal";
 
-import {
-  ALL_COLUMNS,
-  TABS,
-  getStatusColor,
-  getRecruiterStatusColor,
-  getHMApprovalColor,
-} from "@/lib/user-config";
+import { ALL_COLUMNS, TABS } from "@/lib/user-config";
 import { UserActionsPopover } from "./userActionsPopover";
 
 const API_BASE_URL = "http://16.171.117.2:3000";
 
 interface CandidateForm {
   id: number;
-  job_id: number;
+  agency_id: number;
   first_name: string;
   last_name: string;
   email: string;
@@ -75,14 +68,15 @@ interface CandidateForm {
   created_at: string;
   updated_at: string;
   linkedinprofile: string;
-  role:string;
-  created_dt:string;
+  role: string;
+  created_dt: string;
+  name:string;
 }
 
 interface ParsedEducation {
   institution: string;
   degree: string;
-  candidateId:number;
+  candidateId: number;
 }
 
 const formatCandidateAddress = (address: string): string => {
@@ -92,8 +86,8 @@ const formatCandidateAddress = (address: string): string => {
     if (Array.isArray(parsed)) {
       const latestAddress = [...parsed]
         .reverse()
-        .find(
-          (addr) => addr && Object.values(addr).some((val) => val && val !== "")
+        .find((addr) =>
+          addr && Object.values(addr).some((val) => val && val !== "")
         );
       if (!latestAddress) return "NA";
       const fields = [
@@ -128,13 +122,11 @@ export default function CandidateViewList({
 }: CandidateViewListProps) {
   const [localCandidates, setLocalCandidates] = useState<CandidateForm[]>([]);
   const [isAddModalOpen, setAddModalOpen] = useState(false);
-
-  useEffect(() => {
-    setLocalCandidates(candidates);
-  }, [candidates]);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
+  const [selectedAgency, setSelectedAgency] = useState("");
+  const [agencies, setAgencies] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<string>("all");
   const itemsPerPage = 20;
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -145,39 +137,48 @@ export default function CandidateViewList({
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] =
     useState<CandidateForm | null>(null);
+  const [editCandidate, setEditCandidate] = useState<CandidateForm | null>(null);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
+
+  useEffect(() => {
+    setLocalCandidates(candidates);
+  }, [candidates]);
+
+  const fetchAgencies = async () => {
+    try {
+      const { data } = await axios.get(`${API_BASE_URL}/agency/getAllAgencies`);
+      setAgencies(data.result || []);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch agencies.");
+    }
+  };
+
+  useEffect(() => {
+    fetchAgencies();
+  }, []);
 
   const lowerTerm = searchQuery.toLowerCase().trim();
   const safe = (s?: string | null) => s?.toLowerCase() ?? "";
 
+  // ✅ Filtering includes role + agency
   const filtered = useMemo(
     () =>
       localCandidates.filter((c) => {
+        if (selectedRole && c.role !== selectedRole) return false;
+        if (selectedAgency && String(c.agency_id) !== selectedAgency) return false;
+
         if (!lowerTerm) return true;
-        switch (activeTab) {
-          case "status":
-            return safe(c.status).includes(lowerTerm);
-          case "recruiter":
-            return safe(c.recruiter_status).includes(lowerTerm);
-          case "hm":
-            return safe(c.hmapproval).includes(lowerTerm);
-          case "updated_at":
-            return safe(c.updated_at).includes(lowerTerm);
-          case "address":
-            return safe(c.address).includes(lowerTerm);
-          case "all":
-          default:
-            const fullName = `${c.first_name ?? ""} ${c.last_name ?? ""}`;
-            return (
-              fullName.toLowerCase().includes(lowerTerm) ||
-              (c.skill ?? []).join(" ").toLowerCase().includes(lowerTerm) ||
-              safe(c.current_company).includes(lowerTerm) ||
-              safe(c.email).includes(lowerTerm)
-            );
-        }
+        const fullName = `${c.first_name ?? ""} ${c.last_name ?? ""}`;
+        return (
+          fullName.toLowerCase().includes(lowerTerm) ||
+          (c.skill ?? []).join(" ").toLowerCase().includes(lowerTerm) ||
+          safe(c.current_company).includes(lowerTerm) ||
+          safe(c.email).includes(lowerTerm)
+        );
       }),
-    [localCandidates, lowerTerm, activeTab]
+    [localCandidates, lowerTerm, activeTab, selectedRole, selectedAgency]
   );
 
   const filteredIds = useMemo(() => filtered.map((c) => c.id), [filtered]);
@@ -204,74 +205,6 @@ export default function CandidateViewList({
     });
   };
 
-  const toggleColumn = (key: string, show: boolean) => {
-    setVisibleColumns((prev) =>
-      show ? [...prev, key] : prev.filter((c) => c !== key)
-    );
-  };
-
-  const handleDelete = async () => {
-    if (!selected.size) return;
-    try {
-      await axios.post(`${API_BASE_URL}/user/bulk-delete`, {
-        data: { ids: [...selected] },
-      });
-      setLocalCandidates((prev) => prev.filter((c) => !selected.has(c.id)));
-      setSelected(new Set());
-      toast.success("Deleted!");
-    } catch (err) {
-      console.error("Failed to delete users", err);
-      toast.error("Could not delete users");
-    }
-  };
-
-  const handleEdit = () => {
-    if (!selected.size) {
-      toast.error("Select at least one candidate first");
-      return;
-    }
-    setIsBulkModalOpen(true);
-  };
-
-  const handleStatusChange = async (id: number, status: string) => {
-    try {
-      await axios.put(`${API_BASE_URL}/candidate/${id}`, { status });
-      setLocalCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, status } : c))
-      );
-    } catch (err) {
-      console.error("Failed to update status", err);
-      toast.error("Could not update status");
-    }
-  };
-
-  const handleRecruiterStatusChange = async (
-    id: number,
-    recruiter_status: string
-  ) => {
-    try {
-      await axios.put(`${API_BASE_URL}/candidate/${id}`, { recruiter_status });
-      setLocalCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, recruiter_status } : c))
-      );
-    } catch (err) {
-      console.error("Failed to update recruiter status", err);
-      toast.error("Could not update recruiter status");
-    }
-  };
-
-  const handleHMApprovalChange = async (id: number, hmapproval: string) => {
-    try {
-      await axios.put(`${API_BASE_URL}/candidate/${id}`, { hmapproval });
-      setLocalCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, hmapproval } : c))
-      );
-    } catch (err) {
-      console.error("Failed to update HM approval", err);
-      toast.error("Could not update HM approval");
-    }
-  };
-
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const start = (currentPage - 1) * itemsPerPage;
   const paginated = filtered.slice(start, start + itemsPerPage);
@@ -281,7 +214,8 @@ export default function CandidateViewList({
       <Card className="border-0 bg-white/60 shadow-sm backdrop-blur-sm">
         <CardContent className="p-4">
           <div className="flex flex-col justify-between gap-3 sm:flex-row">
-            <div className="relative w-full">
+            {/* Search Input */}
+            <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <Input
                 value={searchQuery}
@@ -290,6 +224,41 @@ export default function CandidateViewList({
                 className="h-9 bg-white/80 pl-10"
               />
             </div>
+
+            {/* Role Dropdown */}
+            <div className="w-full sm:w-40">
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Admin">Admin</SelectItem>
+                  {/* <SelectItem value="Candidate">Candidate</SelectItem>
+                  <SelectItem value="HiringManager">Hiring Manager</SelectItem> */}
+                  <SelectItem value="Interviewer">Interviewer</SelectItem>
+                  <SelectItem value="Recruiter">Recruiter</SelectItem>
+                  <SelectItem value="Vendor">Vendor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Agency Dropdown */}
+            <div className="w-full sm:w-48">
+              <Select value={selectedAgency} onValueChange={setSelectedAgency}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select Agency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agencies.map((agency) => (
+                    <SelectItem key={agency.id} value={agency.id.toString()}>
+                      {agency.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Tabs */}
             <div className="flex gap-2">
               {TABS.map(([label, key]) => (
                 <Button
@@ -304,71 +273,25 @@ export default function CandidateViewList({
                   {label}
                 </Button>
               ))}
+
             </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedRole("");
+                setSelectedAgency("");
+              }}
+            >
+              Clear
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Table Section */}
       <Card className="border-0 bg-white/60 shadow-sm backdrop-blur-sm max-w-[100%]">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center justify-between text-lg text-slate-800">
-            <div>Users({filtered.length})</div>
-            <div className="flex gap-4">
-              <Button onClick={() => setIsFilterOpen(true)} variant="outline">
-                <Filter className="mr-2 h-4 w-4" /> Filter Columns
-              </Button>
-              {/* <Button
-                onClick={() => setAddModalOpen(true)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-              >
-                <Plus className="mr-2 h-4 w-4" /> Add User
-              </Button> */}
-            </div>
-          </CardTitle>
-          {selected.size > 0 && (
-            <div className="flex flex-wrap items-center gap-4 rounded p-2">
-              <span>{selected.size} selected</span>
-              <Button
-                size="sm"
-                onClick={() => setSelected(new Set())}
-                variant="outline"
-              >
-                Clear Selection
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setAssignModalOpen(true)}
-                variant="outline"
-              >
-                Add to Job
-              </Button>
-              <Button size="sm" onClick={handleEdit} variant="outline">
-                Update fields
-              </Button>
-              <Button size="sm" onClick={handleDelete} variant="destructive">
-                Delete records
-              </Button>
-            </div>
-          )}
-        </CardHeader>
-        <AssignToJobModal
-          open={assignModalOpen}
-          onOpenChange={setAssignModalOpen}
-          candidateIds={Array.from(selected)}
-          onSuccess={fetchCandidates}
-        />
-        <BulkUpdateFieldsModal
-          open={isBulkModalOpen}
-          onClose={() => setIsBulkModalOpen(false)}
-          selectedIds={Array.from(selected)}
-          onSuccess={fetchCandidates}
-        />
-        <FilterColumnsModal
-          open={isFilterOpen}
-          onOpenChange={setIsFilterOpen}
-          columns={ALL_COLUMNS.filter((c) => c.key !== "name")}
-          visibleColumns={visibleColumns}
-          onChange={toggleColumn}
-        />
         <CardContent className="p-0">
           <div className="max-h-[600px] overflow-auto">
             <Table>
@@ -378,8 +301,6 @@ export default function CandidateViewList({
                     <Checkbox
                       checked={allSelectedInFilter}
                       onCheckedChange={toggleAll}
-                      aria-label="Select all in current view"
-                      className="border-0 bg-gray-200 outline-none"
                     />
                   </TableHead>
                   {ALL_COLUMNS.map((col) =>
@@ -420,28 +341,27 @@ export default function CandidateViewList({
                       const eduData = JSON.parse(candidate.education);
                       if (Array.isArray(eduData) && eduData.length > 0)
                         parsedEdu = eduData[0];
-                    } catch {}
+                    } catch { }
                     return (
-                      <TableRow
-                        key={candidate.id}
-                        className="hover:bg-slate-50/50"
-                      >
+                      <TableRow key={candidate.id}>
                         <TableCell className="w-12">
                           <Checkbox
                             checked={selected.has(candidate.id)}
                             onCheckedChange={() => toggleOne(candidate.id)}
-                            aria-label={`Select ${candidate.first_name}`}
-                            className="border-0 bg-gray-200 outline-none"
                           />
                         </TableCell>
                         {visibleColumns.includes("name") && (
-                          <TableCell className="min-w-[200px] py-2">
-                            <UserActionsPopover candidateId={candidate.id}>
+                          <TableCell>
+                            <UserActionsPopover
+                              candidateId={candidate.id}
+                              candidate={candidate}
+                              fetchCandidates={fetchCandidates}
+                            >
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
-                                    {candidate.first_name?.toUpperCase()[0]}
-                                    {candidate.last_name?.toUpperCase()[0]}
+                                  <AvatarFallback>
+                                    {candidate.first_name?.[0]}
+                                    {candidate.last_name?.[0]}
                                   </AvatarFallback>
                                 </Avatar>
                                 <button
@@ -449,167 +369,40 @@ export default function CandidateViewList({
                                     setSelectedCandidate(candidate);
                                     setProfileModalOpen(true);
                                   }}
-                                  className="whitespace-nowrap text-sm font-medium text-slate-600 focus:outline-none hover:underline"
+                                  className="text-sm font-medium hover:underline"
                                 >
                                   {candidate.first_name} {candidate.last_name}
                                 </button>
                               </div>
                             </UserActionsPopover>
+
                           </TableCell>
                         )}
-                        
+
                         {visibleColumns.includes("email") && (
                           <TableCell>{candidate.email}</TableCell>
                         )}
-                        {/* {visibleColumns.includes("status") && (
-                          <TableCell className="min-w-[170px] px-2">
-                            <Select
-                              value={candidate.status}
-                              onValueChange={(newStatus) =>
-                                handleStatusChange(candidate.id, newStatus)
-                              }
-                            >
-                              <SelectTrigger
-                                className={cn(
-                                  "h-8 w-full text-xs",
-                                  getStatusColor(candidate.status)
-                                )}
-                              >
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {[
-                                  "Sourced",
-                                  "Application",
-                                  "Screening",
-                                  "Interview",
-                                  "Offer",
-                                  "Hired",
-                                  "Rejected",
-                                ].map((opt) => (
-                                  <SelectItem key={opt} value={opt}>
-                                    {opt}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        )} */}
-                        {/* {visibleColumns.includes("recruiter_status") && (
-                          <TableCell className="min-w-[170px] px-2">
-                            <Select
-                              value={candidate.recruiter_status}
-                              onValueChange={(val) =>
-                                handleRecruiterStatusChange(candidate.id, val)
-                              }
-                            >
-                              <SelectTrigger
-                                className={cn(
-                                  "h-8 w-full text-xs",
-                                  getRecruiterStatusColor(
-                                    candidate.recruiter_status
-                                  )
-                                )}
-                              >
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {[
-                                  "New Application",
-                                  "Initial Review",
-                                  "Screening Complete",
-                                  "Recommended",
-                                  "Not Suitable",
-                                ].map((opt) => (
-                                  <SelectItem key={opt} value={opt}>
-                                    {opt}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        )} */}
-                        {/* {visibleColumns.includes("hmapproval") && (
-                          <TableCell className="min-w-[170px] px-2">
-                            <Select
-                              value={candidate.hmapproval}
-                              onValueChange={(val) =>
-                                handleHMApprovalChange(candidate.id, val)
-                              }
-                            >
-                              <SelectTrigger
-                                className={cn(
-                                  "h-8 w-full text-xs",
-                                  getHMApprovalColor(candidate.hmapproval)
-                                )}
-                              >
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {["Pending", "Approved", "Rejected"].map(
-                                  (opt) => (
-                                    <SelectItem key={opt} value={opt}>
-                                      {opt}
-                                    </SelectItem>
-                                  )
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        )} */}
-                        {/* {visibleColumns.includes("headline") && (
-                          <TableCell className="min-w-[150px]">
-                            {candidate.headline || "N/A"}
-                          </TableCell>
-                        )} */}
                         {visibleColumns.includes("phone") && (
-                          <TableCell className="min-w-[150px] whitespace-nowrap text-sm text-slate-500">
-                            {candidate.phone}
-                          </TableCell>
+                          <TableCell>{candidate.phone}</TableCell>
                         )}
                         {visibleColumns.includes("status") && (
-                          <TableCell className="min-w-[200px] whitespace-nowrap text-sm text-slate-500">
-                           {Number(candidate.status) === 1 ? "Active" : "Inactive"}
+                          <TableCell>
+                            {Number(candidate.status) === 1
+                              ? "Active"
+                              : "Inactive"}
                           </TableCell>
                         )}
-
-                          {visibleColumns.includes("role") && (
-                          <TableCell className="min-w-[200px] whitespace-nowrap text-sm text-slate-500">
-                           {candidate.role}
-                          </TableCell>
+                        {visibleColumns.includes("role") && (
+                          <TableCell>{candidate.role}</TableCell>
                         )}
-
-                          {visibleColumns.includes("created_at") && (
-                          <TableCell className="min-w-[200px] whitespace-nowrap text-sm text-slate-500">
-                           {candidate.created_dt}
-                          </TableCell>
+                        {visibleColumns.includes("created_at") && (
+                          <TableCell>{candidate.created_dt}</TableCell>
                         )}
                         {visibleColumns.includes("current_company") && (
-                          <TableCell className="min-w-[150px]">
-                            <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-slate-500">
-                              <Building2 className="h-3 w-3 text-slate-400" />
-                              {candidate.current_company || "N/A"}
-                            </span>
-                          </TableCell>
-                        )}
-                        {visibleColumns.includes("current_ctc") && (
-                          <TableCell className="min-w-[150px] whitespace-nowrap py-2">
-                            <span className="inline-flex items-center gap-1 text-sm text-slate-700">
-                              <DollarSign className="h-3 w-3 text-green-600" />
-                              {candidate.current_ctc || "N/A"}
-                            </span>
-                          </TableCell>
-                        )}
-                        {visibleColumns.includes("expected_ctc") && (
-                          <TableCell className="min-w-[150px] whitespace-nowrap py-2">
-                            <span className="inline-flex items-center gap-1 text-sm text-slate-700">
-                              <DollarSign className="h-3 w-3 text-green-600" />
-                              {candidate.expected_ctc || "N/A"}
-                            </span>
-                          </TableCell>
+                          <TableCell>{candidate.current_company || "N/A"}</TableCell>
                         )}
                         {visibleColumns.includes("skill") && (
-                          <TableCell className="min-w-[400px] py-2">
+                          <TableCell>
                             <div className="flex gap-1">
                               {(candidate.skill || [])
                                 .slice(0, 2)
@@ -624,38 +417,61 @@ export default function CandidateViewList({
                                 </Badge>
                               )}
                             </div>
+
                           </TableCell>
                         )}
                         {visibleColumns.includes("education") && (
-                          <TableCell className="min-w-[200px] whitespace-nowrap py-2">
-                            <div>
-                              <span className="inline-flex items-center gap-1 text-sm font-medium text-slate-600">
-                                <GraduationCap className="h-4 w-4 text-slate-600" />
-                                {parsedEdu?.institution || "N/A"}
-                              </span>
-                            </div>
-                            <span className="text-xs text-slate-500">
+                          <TableCell>
+                            {parsedEdu?.institution || "N/A"}{" "}
+                            <span className="text-xs">
                               {parsedEdu?.degree || ""}
                             </span>
                           </TableCell>
                         )}
                         {visibleColumns.includes("rating") && (
                           <TableCell>
-                            <div className="mt-1 flex items-center gap-1">
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                              <span className="text-xs text-slate-600">
-                                {candidate.rating || "N/A"}
-                              </span>
-                            </div>
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            {candidate.rating || "N/A"}
                           </TableCell>
                         )}
                         {visibleColumns.includes("address") && (
-                          <TableCell className="min-w-[200px]">
-                            <div className="whitespace-nowrap text-sm text-slate-500">
-                              {formatCandidateAddress(candidate.address)}
-                            </div>
+                          <TableCell>
+                            {formatCandidateAddress(candidate.address)}
                           </TableCell>
                         )}
+                        {/* Edit Button */}
+                       <Button
+  onClick={() => {
+    setEditCandidate({
+      ...candidate,
+      name: `${candidate.first_name ?? ""} ${candidate.last_name ?? ""}`.trim(),
+      agency: candidate.agency_id ?? "",
+      password: "",
+      confirm_password: "",
+    });
+    setIsAddModalOpen(true);
+  }}
+>
+                          Edit
+                        </Button>
+
+                        {/* Delete Button */}
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={async () => {
+                            try {
+                              await axios.delete(`${API_BASE_URL}/user/${candidate.id}`);
+                              toast.success("Candidate deleted successfully");
+                              fetchCandidates();
+                            } catch (err) {
+                              console.error(err);
+                              toast.error("Failed to delete candidate");
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
                       </TableRow>
                     );
                   })
@@ -665,12 +481,13 @@ export default function CandidateViewList({
           </div>
         </CardContent>
       </Card>
+
+      {/* Pagination */}
       {totalPages > 1 && (
         <CardContent className="flex justify-center space-x-2 py-4">
           <Button
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => (p > 1 ? p - 1 : 1))}
-            className="bg-blue-500"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           >
             Previous
           </Button>
@@ -679,28 +496,35 @@ export default function CandidateViewList({
               key={page}
               variant={currentPage === page ? "default" : "outline"}
               onClick={() => setCurrentPage(page)}
-              className={
-                currentPage === page
-                  ? "bg-blue-500 text-white"
-                  : "text-blue-500 bg-white"
-              }
             >
               {page}
             </Button>
           ))}
           <Button
             disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => (p < totalPages ? p + 1 : p))}
-            className="bg-blue-500"
+            onClick={() =>
+              setCurrentPage((p) => (p < totalPages ? p + 1 : p))
+            }
           >
             Next
           </Button>
         </CardContent>
       )}
+
       <AddCandidateModal
         open={isAddModalOpen}
         handleClose={() => setAddModalOpen(false)}
+        candidate=""
+        fetchCandidates={fetchCandidates}
       />
+      {editCandidate && (
+        <AddCandidateModal
+          open={!!editCandidate}
+          handleClose={() => setEditCandidate(null)}
+          candidate={editCandidate}   // pass candidate to modal
+          fetchCandidates={fetchCandidates}
+        />
+      )}
       <CandidateProfileModal
         open={isProfileModalOpen}
         onOpenChange={setProfileModalOpen}
@@ -710,4 +534,3 @@ export default function CandidateViewList({
     </div>
   );
 }
-
