@@ -17,6 +17,11 @@ import { NotesListPanel } from "./panels/NotesListPanel";
 import { Button } from "@/components/ui/button";
 import { X, FileText } from "lucide-react";
 import { EditCandidateForm } from "./forms/EditCandidateForm";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 
 export default function CandidateDetailsTabs({
   candidate,
@@ -70,42 +75,46 @@ export default function CandidateDetailsTabs({
   if (isEditMode && selectedResume) {
     return (
       <div className="p-3 w-full">
-        <div className="flex gap-4 h-[700px]">
-          <div className="w-1/2 border rounded-lg p-4 bg-white">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Resume Preview
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closePreview}
-                className="p-2"
-              >
-                <X className="w-4 h-4" />
-              </Button>
+        <ResizablePanelGroup direction="horizontal" className="h-[700px]">
+          <ResizablePanel defaultSize={50} minSize={25} maxSize={75}>
+            <div className="border rounded-lg p-4 bg-white h-full flex flex-col mr-2">
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Resume Preview
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closePreview}
+                  className="p-2"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="text-sm text-gray-600 mb-4 truncate flex-shrink-0">
+                {selectedResume.resume_url}
+              </div>
+              <div className="flex-1 border rounded overflow-hidden min-h-0">
+                <iframe
+                  src={previewUrl}
+                  title="Resume Preview"
+                  className="w-full h-full"
+                />
+              </div>
             </div>
-            <div className="text-sm text-gray-600 mb-4 truncate">
-              {selectedResume.resume_url}
-            </div>
-            <div className="h-[600px] border rounded overflow-hidden">
-              <iframe
-                src={previewUrl}
-                title="Resume Preview"
-                className="w-full h-full"
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={50} minSize={25} maxSize={75}>
+            <div className="pl-2 h-full">
+              <EditCandidateForm
+                candidate={candidate}
+                onSaveSuccess={handleEditSave}
+                onCancel={handleEditCancel}
               />
             </div>
-          </div>
-
-          <div className="w-1/2">
-            <EditCandidateForm
-              candidate={candidate}
-              onSaveSuccess={handleEditSave}
-              onCancel={handleEditCancel}
-            />
-          </div>
-        </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     );
   }
@@ -182,195 +191,352 @@ export default function CandidateDetailsTabs({
 
   return (
     <div className="p-3 w-full">
-      <div className="flex gap-6 min-h-[800px]">
-        {selectedResume && (
-          <div className="w-1/2 border rounded-lg p-4 bg-white flex flex-col">
-            <div className="flex items-center justify-between mb-4 flex-shrink-0">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Resume Preview
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closePreview}
-                className="p-2"
+      {selectedResume ? (
+        <ResizablePanelGroup direction="horizontal" className="min-h-[800px]">
+          <ResizablePanel defaultSize={40} minSize={20} maxSize={70}>
+            <div className="border rounded-lg p-4 bg-white h-full flex flex-col mr-2">
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Resume Preview
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closePreview}
+                  className="p-2"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="text-sm text-gray-600 mb-4 truncate flex-shrink-0">
+                {selectedResume.resume_url}
+              </div>
+              <div className="flex-1 border rounded overflow-hidden min-h-0">
+                <iframe
+                  src={previewUrl}
+                  title="Resume Preview"
+                  className="w-full h-full"
+                />
+              </div>
+            </div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={60} minSize={30} maxSize={80}>
+            <div className="pl-2 flex flex-col space-y-4 h-full">
+              <div className="flex-1">
+                <Tabs
+                  value={primaryTab}
+                  onValueChange={setPrimaryTab}
+                  aria-label="Candidate primary sections"
+                  className="h-full flex flex-col"
+                >
+                  <div className="w-full overflow-x-auto flex-shrink-0 mb-4">
+                    <TabsList className="flex min-w-max w-full">
+                      {[
+                        { value: "notes", label: "Notes" },
+                        { value: "tasks", label: "Tasks" },
+                        { value: "schedule", label: "Schedule" },
+                        { value: "email", label: "Email" },
+                        { value: "calls", label: "Calls" },
+                        { value: "text", label: "Text" },
+                        { value: "activity", label: "Activity" },
+                      ].map((tab) => (
+                        <TabsTrigger
+                          key={tab.value}
+                          value={tab.value}
+                          className="text-center whitespace-nowrap px-4 py-2 min-w-fit flex-1 justify-center"
+                        >
+                          {tab.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </div>
+
+                  <div className="flex-1 min-h-[300px]">
+                    <TabsContent value="notes">
+                      <NotesPanel
+                        candidateId={candidate.id}
+                        authorId={1}
+                        refreshTrigger={handleAdded}
+                      />
+                    </TabsContent>
+                    <TabsContent value="tasks">
+                      <TasksPanel
+                        candidateId={candidate.id}
+                        authorId={1}
+                        onTaskAdded={handleAdded}
+                      />
+                    </TabsContent>
+                    <TabsContent value="schedule">
+                      <SchedulePanel
+                        candidate={{
+                          candidateId: candidate.id,
+                          candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                        }}
+                        refreshTrigger={handleAdded}
+                      />
+                    </TabsContent>
+                    <TabsContent value="email">
+                      <EmailPanel
+                        candidate={{
+                          candidateId: candidate.id,
+                          candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                        }}
+                        refreshTrigger={handleAdded}
+                      />
+                    </TabsContent>
+                    <TabsContent value="calls">
+                      <CallsPanel
+                        candidate={{
+                          candidateId: candidate.id,
+                          candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                        }}
+                      />
+                    </TabsContent>
+                    <TabsContent value="text">
+                      <TextPanel
+                        candidate={{
+                          candidateId: candidate.id,
+                          candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                        }}
+                      />
+                    </TabsContent>
+                    <TabsContent value="activity">
+                      <ActivityPanel candidate={candidate} />
+                    </TabsContent>
+                  </div>
+                </Tabs>
+              </div>
+
+              <div className="flex-1">
+                <Tabs
+                  value={secondaryTab}
+                  onValueChange={setSecondaryTab}
+                  aria-label="Candidate other details"
+                  className="h-full flex flex-col"
+                >
+                  <div className="w-full overflow-x-auto flex-shrink-0 mb-4">
+                    <TabsList className="flex w-full">
+                      {[
+                        { value: "activities", label: "Activities" },
+                        { value: "files", label: "Files" },
+                        { value: "scorecards", label: "Scorecards" },
+                        { value: "conversations", label: "Conversations" },
+                        { value: "calls_list", label: "Calls" },
+                        { value: "tasks_list", label: "Tasks" },
+                        { value: "Notes_list", label: "Notes" },
+                      ].map((tab) => (
+                        <TabsTrigger
+                          key={tab.value}
+                          value={tab.value}
+                          className="text-center whitespace-nowrap px-4 py-2 min-w-fit flex-1 justify-center"
+                        >
+                          {tab.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </div>
+
+                  <div className="flex-1 min-h-[300px]">
+                    <TabsContent value="activities">
+                      <ActivitiesPanel
+                        candidateId={candidate.id}
+                        reloadKey={activitiesRefreshKey}
+                      />
+                    </TabsContent>
+                    <TabsContent value="files">
+                      <FilesPanel
+                        candidateId={candidate.id}
+                        onResumePreview={handleResumePreview}
+                      />
+                    </TabsContent>
+                    <TabsContent value="scorecards">
+                      <ScorecardsPanel scorecards={candidate.scorecards} />
+                    </TabsContent>
+                    <TabsContent value="conversations">
+                      <ConversationsPanel conversations={candidate.conversations} />
+                    </TabsContent>
+                    <TabsContent value="calls_list">
+                      <CallsListPanel
+                        calls={candidate.calls}
+                        candidateId={candidate.id}
+                      />
+                    </TabsContent>
+                    <TabsContent value="Notes_list">
+                      <NotesListPanel candidateId={candidate.id} authorId={1} />
+                    </TabsContent>
+                    <TabsContent value="tasks_list">
+                      <TasksListPanel
+                        candidateId={candidate.id}
+                        authorId={1}
+                        refreshTrigger={refreshFlag}
+                      />
+                    </TabsContent>
+                  </div>
+                </Tabs>
+              </div>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      ) : (
+        <div className="flex gap-6 min-h-[800px]">
+          <div className="w-full flex flex-col space-y-4">
+            <div className="flex-1">
+              <Tabs
+                value={primaryTab}
+                onValueChange={setPrimaryTab}
+                aria-label="Candidate primary sections"
+                className="h-full flex flex-col"
               >
-                <X className="w-4 h-4" />
-              </Button>
+                <div className="w-full overflow-x-auto flex-shrink-0 mb-4">
+                  <TabsList className="flex min-w-max w-full">
+                    {[
+                      { value: "notes", label: "Notes" },
+                      { value: "tasks", label: "Tasks" },
+                      { value: "schedule", label: "Schedule" },
+                      { value: "email", label: "Email" },
+                      { value: "calls", label: "Calls" },
+                      { value: "text", label: "Text" },
+                      { value: "activity", label: "Activity" },
+                    ].map((tab) => (
+                      <TabsTrigger
+                        key={tab.value}
+                        value={tab.value}
+                        className="text-center whitespace-nowrap px-4 py-2 min-w-fit flex-1 justify-center"
+                      >
+                        {tab.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
+
+                <div className="flex-1 min-h-[300px]">
+                  <TabsContent value="notes">
+                    <NotesPanel
+                      candidateId={candidate.id}
+                      authorId={1}
+                      refreshTrigger={handleAdded}
+                    />
+                  </TabsContent>
+                  <TabsContent value="tasks">
+                    <TasksPanel
+                      candidateId={candidate.id}
+                      authorId={1}
+                      onTaskAdded={handleAdded}
+                    />
+                  </TabsContent>
+                  <TabsContent value="schedule">
+                    <SchedulePanel
+                      candidate={{
+                        candidateId: candidate.id,
+                        candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                      }}
+                      refreshTrigger={handleAdded}
+                    />
+                  </TabsContent>
+                  <TabsContent value="email">
+                    <EmailPanel
+                      candidate={{
+                        candidateId: candidate.id,
+                        candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                      }}
+                      refreshTrigger={handleAdded}
+                    />
+                  </TabsContent>
+                  <TabsContent value="calls">
+                    <CallsPanel
+                      candidate={{
+                        candidateId: candidate.id,
+                        candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                      }}
+                    />
+                  </TabsContent>
+                  <TabsContent value="text">
+                    <TextPanel
+                      candidate={{
+                        candidateId: candidate.id,
+                        candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                      }}
+                    />
+                  </TabsContent>
+                  <TabsContent value="activity">
+                    <ActivityPanel candidate={candidate} />
+                  </TabsContent>
+                </div>
+              </Tabs>
             </div>
-            <div className="text-sm text-gray-600 mb-4 truncate flex-shrink-0">
-              {selectedResume.resume_url}
+
+            <div className="flex-1">
+              <Tabs
+                value={secondaryTab}
+                onValueChange={setSecondaryTab}
+                aria-label="Candidate other details"
+                className="h-full flex flex-col"
+              >
+                <div className="w-full overflow-x-auto flex-shrink-0 mb-4">
+                  <TabsList className="flex w-full">
+                    {[
+                      { value: "activities", label: "Activities" },
+                      { value: "files", label: "Files" },
+                      { value: "scorecards", label: "Scorecards" },
+                      { value: "conversations", label: "Conversations" },
+                      { value: "calls_list", label: "Calls" },
+                      { value: "tasks_list", label: "Tasks" },
+                      { value: "Notes_list", label: "Notes" },
+                    ].map((tab) => (
+                      <TabsTrigger
+                        key={tab.value}
+                        value={tab.value}
+                        className="text-center whitespace-nowrap px-4 py-2 min-w-fit flex-1 justify-center"
+                      >
+                        {tab.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
+
+                <div className="flex-1 min-h-[300px]">
+                  <TabsContent value="activities">
+                    <ActivitiesPanel
+                      candidateId={candidate.id}
+                      reloadKey={activitiesRefreshKey}
+                    />
+                  </TabsContent>
+                  <TabsContent value="files">
+                    <FilesPanel
+                      candidateId={candidate.id}
+                      onResumePreview={handleResumePreview}
+                    />
+                  </TabsContent>
+                  <TabsContent value="scorecards">
+                    <ScorecardsPanel scorecards={candidate.scorecards} />
+                  </TabsContent>
+                  <TabsContent value="conversations">
+                    <ConversationsPanel conversations={candidate.conversations} />
+                  </TabsContent>
+                  <TabsContent value="calls_list">
+                    <CallsListPanel
+                      calls={candidate.calls}
+                      candidateId={candidate.id}
+                    />
+                  </TabsContent>
+                  <TabsContent value="Notes_list">
+                    <NotesListPanel candidateId={candidate.id} authorId={1} />
+                  </TabsContent>
+                  <TabsContent value="tasks_list">
+                    <TasksListPanel
+                      candidateId={candidate.id}
+                      authorId={1}
+                      refreshTrigger={refreshFlag}
+                    />
+                  </TabsContent>
+                </div>
+              </Tabs>
             </div>
-            <div className="flex-1 border rounded overflow-hidden min-h-[600px]">
-              <iframe
-                src={previewUrl}
-                title="Resume Preview"
-                className="w-full h-full"
-              />
-            </div>
-          </div>
-        )}
-
-        <div
-          className={`${
-            selectedResume ? "w-1/2" : "w-full"
-          } flex flex-col space-y-4`}
-        >
-          <div className="flex-1">
-            <Tabs
-              value={primaryTab}
-              onValueChange={setPrimaryTab}
-              aria-label="Candidate primary sections"
-              className="h-full flex flex-col"
-            >
-              <div className="w-full overflow-x-auto flex-shrink-0 mb-4">
-                <TabsList className="flex min-w-max w-full">
-                  {[
-                    { value: "notes", label: "Notes" },
-                    { value: "tasks", label: "Tasks" },
-                    { value: "schedule", label: "Schedule" },
-                    { value: "email", label: "Email" },
-                    { value: "calls", label: "Calls" },
-                    { value: "text", label: "Text" },
-                    { value: "activity", label: "Activity" },
-                  ].map((tab) => (
-                    <TabsTrigger
-                      key={tab.value}
-                      value={tab.value}
-                      className="text-center whitespace-nowrap px-4 py-2 min-w-fit flex-1 justify-center"
-                    >
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-
-              <div className="flex-1 min-h-[300px]">
-                <TabsContent value="notes">
-                  <NotesPanel
-                    candidateId={candidate.id}
-                    authorId={1}
-                    refreshTrigger={handleAdded}
-                  />
-                </TabsContent>
-                <TabsContent value="tasks">
-                  <TasksPanel
-                    candidateId={candidate.id}
-                    authorId={1}
-                    onTaskAdded={handleAdded}
-                  />
-                </TabsContent>
-                <TabsContent value="schedule">
-                  <SchedulePanel
-                    candidate={{
-                      candidateId: candidate.id,
-                      candidateName: `${candidate.first_name} ${candidate.last_name}`,
-                    }}
-                    refreshTrigger={handleAdded}
-                  />
-                </TabsContent>
-                <TabsContent value="email">
-                  <EmailPanel
-                    candidate={{
-                      candidateId: candidate.id,
-                      candidateName: `${candidate.first_name} ${candidate.last_name}`,
-                    }}
-                    refreshTrigger={handleAdded}
-                  />
-                </TabsContent>
-                <TabsContent value="calls">
-                  <CallsPanel
-                    candidate={{
-                      candidateId: candidate.id,
-                      candidateName: `${candidate.first_name} ${candidate.last_name}`,
-                    }}
-                  />
-                </TabsContent>
-                <TabsContent value="text">
-                  <TextPanel
-                    candidate={{
-                      candidateId: candidate.id,
-                      candidateName: `${candidate.first_name} ${candidate.last_name}`,
-                    }}
-                  />
-                </TabsContent>
-                <TabsContent value="activity">
-                  <ActivityPanel candidate={candidate} />
-                </TabsContent>
-              </div>
-            </Tabs>
-          </div>
-
-          <div className="flex-1">
-            <Tabs
-              value={secondaryTab}
-              onValueChange={setSecondaryTab}
-              aria-label="Candidate other details"
-              className="h-full flex flex-col"
-            >
-              <div className="w-full overflow-x-auto flex-shrink-0 mb-4">
-                <TabsList className="flex w-full">
-                  {[
-                    { value: "activities", label: "Activities" },
-                    { value: "files", label: "Files" },
-                    { value: "scorecards", label: "Scorecards" },
-                    { value: "conversations", label: "Conversations" },
-                    { value: "calls_list", label: "Calls" },
-                    { value: "tasks_list", label: "Tasks" },
-                    { value: "Notes_list", label: "Notes" },
-                  ].map((tab) => (
-                    <TabsTrigger
-                      key={tab.value}
-                      value={tab.value}
-                      className="text-center whitespace-nowrap px-4 py-2 min-w-fit flex-1 justify-center"
-                    >
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-
-              <div className="flex-1 min-h-[300px]">
-                <TabsContent value="activities">
-                  <ActivitiesPanel
-                    candidateId={candidate.id}
-                    reloadKey={activitiesRefreshKey}
-                  />
-                </TabsContent>
-                <TabsContent value="files">
-                  <FilesPanel
-                    candidateId={candidate.id}
-                    onResumePreview={handleResumePreview}
-                  />
-                </TabsContent>
-                <TabsContent value="scorecards">
-                  <ScorecardsPanel scorecards={candidate.scorecards} />
-                </TabsContent>
-                <TabsContent value="conversations">
-                  <ConversationsPanel conversations={candidate.conversations} />
-                </TabsContent>
-                <TabsContent value="calls_list">
-                  <CallsListPanel
-                    calls={candidate.calls}
-                    candidateId={candidate.id}
-                  />
-                </TabsContent>
-                <TabsContent value="Notes_list">
-                  <NotesListPanel candidateId={candidate.id} authorId={1} />
-                </TabsContent>
-                <TabsContent value="tasks_list">
-                  <TasksListPanel
-                    candidateId={candidate.id}
-                    authorId={1}
-                    refreshTrigger={refreshFlag}
-                  />
-                </TabsContent>
-              </div>
-            </Tabs>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
