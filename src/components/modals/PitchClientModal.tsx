@@ -59,8 +59,9 @@ export default function PitchClientModal({
       const fetchClients = async () => {
         setIsLoadingClients(true);
         try {
+          const agencyId = localStorage.getItem('agency_id');
           const response = await axios.get(
-            `${API_BASE_URL}/client/getAllClient`
+            `${API_BASE_URL}/client/getAllClient?agency_id=${agencyId}`
           );
           if (response.data && Array.isArray(response.data.result)) {
             setClients(response.data.result);

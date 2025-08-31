@@ -89,9 +89,10 @@ export default function Candidates() {
 
   const fetchCandidates = async () => {
     setLoading(true);
+    const agencyId = localStorage.getItem('agency_id');
     try {
       const { data } = await axios.get(
-        `${API_BASE_URL}/candidate/getAllCandidates`
+        `${API_BASE_URL}/candidate/getAllCandidates?agency_id=${agencyId}`
       );
       setCandidates(data.result || []);
     } catch (err) {

@@ -308,7 +308,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       return;
     }
     setLoading(true);
-
+    const agencyId = localStorage.getItem('agency_id');
     const payload = {
       job_title: formData.jobTitle,
       job_code: formData.jobCode,
@@ -338,6 +338,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       status: "Draft",
       priority: "Medium",
       notice_period: formData.notice_period,
+      agency_id:agencyId,
     };
 
     try {

@@ -153,14 +153,19 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
     setUploading(true);
     try {
       const allParsedData: any[] = [];
-
+    const agencyId = localStorage.getItem('agency_id');
       for (const file of selectedFiles) {
         const isCSV = file.type === "text/csv";
         const parsedData = isCSV
           ? await parseCSV(file)
           : await parseExcel(file);
 
-        allParsedData.push(...parsedData);
+       const enrichedData = parsedData.map((item: any) => ({
+        ...item,
+        agency_id: Number(agencyId),
+      }));
+
+      allParsedData.push(...enrichedData);
       }
       console.log("Uploading parsed data:", allParsedData);
       await axios.post(`${API_BASE_URL}/client/createClient`, allParsedData, {
@@ -222,9 +227,13 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
     e.preventDefault();
     if (!validateForm()) return;
     setLoading(true);
+    const agencyId = localStorage.getItem('agency_id');
     console.log("Submitting client:", formData);
     try {
-      await axios.post(`${API_BASE_URL}/client/createClient`, formData);
+      await axios.post(`${API_BASE_URL}/client/createClient`, {
+      ...formData,
+      agency_id: Number(agencyId), // ✅ Add agency_id here
+    });
       toast.success("Client added successfully");
       onClose();
     } catch (err) {

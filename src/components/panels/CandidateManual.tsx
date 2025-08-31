@@ -219,7 +219,7 @@ export const CandidateManual = ({
       return;
     }
     setLoading(true);
-
+const agencyId = localStorage.getItem('agency_id');
     const fullAddress = [
       formData.street1,
       formData.street2,
@@ -238,6 +238,7 @@ export const CandidateManual = ({
       ...rest,
       address: fullAddress,
       job_id: jobId,
+      agency_id:agencyId,
     };
 
     try {

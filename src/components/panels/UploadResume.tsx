@@ -62,9 +62,13 @@ export default function UploadResume({
   Array.from(resumeFiles).forEach((file) => {
     formData.append("resumes", file);
   });
+  const agencyId = localStorage.getItem('agency_id');
 
   if (jobId) {
     formData.append("job_id", jobId.toString());
+  }
+  if (agencyId) {
+    formData.append("agency_id", agencyId);
   }
 
   try {

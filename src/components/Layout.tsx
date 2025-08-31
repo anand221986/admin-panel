@@ -93,7 +93,7 @@ function AppSidebar() {
   const location = useLocation();
   const { getUserRoles, getUserDetails} = useAuth();
   const userRoles = getUserRoles();
-  console.log(userRoles, "userRoles");
+  console.log(userRoles,getUserDetails, "userRoles");
 
   const filteredMenuItems = menuItems.filter((item) =>
     item.roles.some((role) =>

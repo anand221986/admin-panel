@@ -55,8 +55,9 @@ const AssignToJobModal: React.FC<AssignToJobModalProps> = ({
 
   useEffect(() => {
     if (open) {
+      const agency_id = localStorage.getItem("agency_id");
       axios
-        .get(`${API_BASE_URL}/jobs/getAllJobs`)
+        .get(`${API_BASE_URL}/jobs/getAllJobs?agency_id=${agency_id}`)
         .then((res) => {
           const list = res.data.result as Job[];
           setJobs(list);

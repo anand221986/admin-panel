@@ -58,11 +58,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       });
-      const { accessToken, idToken, refreshToken } = response.data;
+      const { accessToken, idToken, refreshToken,agency_id } = response.data;
 
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("idToken", idToken);
       localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("agency_id", agency_id);
+      
       const token = localStorage.getItem("idToken");
       if (token) {
         const decoded: DecodedToken = jwtDecode(token);

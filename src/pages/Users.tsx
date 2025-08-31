@@ -52,6 +52,7 @@ interface CandidateForm {
   companytier: string;
   role: string;
   created_dt: string;
+  agency_id:number;
 }
 
 const parseAddress = (addressString: string): ParsedAddress => {
@@ -194,11 +195,12 @@ export default function Users() {
           </div>
         </div>
 
-        <AddCandidateModal
-          open={isModalOpen}
-          handleClose={() => setIsModalOpen(false)}
-          
-        />
+      <AddCandidateModal
+  open={isModalOpen}
+  handleClose={() => setIsModalOpen(false)}
+  candidates={candidates || []}  // pass the candidates array
+  fetchCandidates={fetchCandidates}
+/>
 
         <CandidateViewList
           loading={loading}
