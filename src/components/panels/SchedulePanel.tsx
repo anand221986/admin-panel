@@ -1,5 +1,5 @@
 //import React from "react";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,8 @@ export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate: { candi
   const [saving, setSaving] = useState(false);
   const [eventDescription, setEventDescription] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState<() => void>(() => () => { });
+  const [selectedTemplate, setSelectedTemplate] = useState("")
+  const [templates, setTemplates] = useState<{ id: string; template_name: string,subject:string,body:string }[]>([])
 
   const date = parseISO("2025-08-16");
   const startTime = "10:00";
@@ -75,6 +77,25 @@ export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate: { candi
       setSaving(false);
     }
   };
+
+    const fetchTemplates = async () => {
+      try {
+        const res = await fetch("http://16.171.117.2:3000/settings/getAllTemplates")
+        const data = await res.json()
+        const result=data.result;
+        const emailTemplates = result.filter((tpl: any) => tpl.template_type === "email")
+        setTemplates(emailTemplates)
+      } catch (error) {
+        console.error("Failed to fetch templates:", error)
+      }
+    }
+useEffect(()=>{
+fetchTemplates();
+  if (candidateName) {
+    setEventName(`New event - ${candidateName} - Recruiter Screen`);
+  }
+  },[candidateName])
+    
   return (
     <div className="space-y-4 p-6 bg-white rounded-lg shadow mb-4">
       <div className="flex items-center justify-between">
@@ -84,15 +105,24 @@ export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate: { candi
           className="flex-1 mx-4"
           placeholder="Enter event title…"
           readOnly
-        // onChange={(e) => setEventName(e.target.value)}
         />
-        <Select defaultValue="">
+        <Select value={selectedTemplate}  onValueChange={(value)=>{
+setSelectedTemplate(value);
+const tpl = templates.find((t) => String(t.id) === String(value));
+ if (tpl) {
+       const replacedBody = tpl.body?.replace(/{candidate}/g, candidateName);
+      setEventDescription(replacedBody || "");
+    }
+        }}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Select template" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="template1">Template 1</SelectItem>
-            <SelectItem value="template2">Template 2</SelectItem>
+             {templates.map((tpl) => (
+            <SelectItem key={tpl.id} value={tpl.id}>
+              {tpl.template_name}
+            </SelectItem>
+          ))}
           </SelectContent>
         </Select>
       </div>
@@ -127,7 +157,6 @@ export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate: { candi
         value={eventDescription}
         onChange={(e) => {
           setEventDescription(e.target.value)
-          setEventName(`New event - ${candidateName} - Recruiter Screen`)
         }
         }
       />

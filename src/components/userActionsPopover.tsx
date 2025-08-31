@@ -47,14 +47,14 @@ interface CandidateForm {
 }
 
 type CandidateActionsPopoverProps = {
-    candidate:CandidateForm,
+    candidate:CandidateForm | null,
   fetchCandidates: () => void;
   children: React.ReactNode;
   candidateId: number;
 };
 
 export function UserActionsPopover({
-    candidate,
+  candidate,
   fetchCandidates,
   children,
   candidateId

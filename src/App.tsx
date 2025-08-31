@@ -16,6 +16,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Users = lazy(() => import("./pages/Users"));
+const Agenncies = lazy(() => import("./pages/Agencies"));
+ 
 
 
 import { AuthProvider } from "@/context/AuthContext";
@@ -113,6 +115,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Settings />
+                  </ProtectedRoute>
+                }
+              />
+               <Route
+                path="/agenncies"
+                element={
+                  <ProtectedRoute>
+                    <Agenncies />
                   </ProtectedRoute>
                 }
               />

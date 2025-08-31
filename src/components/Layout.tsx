@@ -37,49 +37,55 @@ const menuItems = [
     title: "Dashboard",
     url: "/",
     icon: Home,
-    roles: ["admin", "Interviewer", "Recruiter"],
+    roles: ["SuperAdmin","admin", "Interviewer", "Recruiter"],
   },
   {
     title: "Jobs",
     url: "/jobs",
     icon: Briefcase,
-    roles: ["admin", "Recruiter"],
+    roles: ["SuperAdmin","admin", "Recruiter","Vendor"],
   },
   {
     title: "Candidates",
     url: "/candidates",
     icon: Users,
-    roles: ["admin", "Recruiter"],
+    roles: ["admin", "Recruiter","SuperAdmin","Vendor"],
   },
   {
     title: "Clients",
     url: "/clients",
     icon: Building2,
-    roles: ["admin", "Recruiter"],
+    roles: ["admin", "Recruiter","SuperAdmin","Vendor"],
   },
   {
     title: "Interviews",
     url: "/interviews",
     icon: Calendar,
-    roles: ["Interviewer", "admin"],
+    roles: ["Interviewer", "admin","SuperAdmin"],
   },
   {
     title: "Users",
     url: "/users",
     icon: BarChart3,
-    roles: ["admin", "Recruiter"],
+    roles: ["admin", "Recruiter","SuperAdmin"],
   },
   {
     title: "Analytics",
     url: "/analytics",
     icon: BarChart3,
-    roles: ["Recruiter", "admin"],
+    roles: ["Recruiter", "admin","SuperAdmin"],
   },
   {
     title: "Settings",
     url: "/settings",
     icon: Settings,
-    roles: ["admin", "Interviewer"],
+    roles: ["admin", "Interviewer","SuperAdmin"],
+  },
+   {
+    title: "Agencies",
+    url: "/agenncies",
+    icon: Settings,
+    roles: ["SuperAdmin"],
   },
 ];
 
@@ -164,9 +170,9 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50/30">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50/30 overflow-x-hidden">
         <AppSidebar />
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col min-w-0">
           <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 p-4">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="hover:bg-slate-100 transition-colors" />
@@ -202,7 +208,7 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
           </header>
-          <div className="flex-1 p-6">{children}</div>
+          <div className="flex-1 p-6 overflow-x-hidden">{children}</div>
         </main>
       </div>
     </SidebarProvider>
