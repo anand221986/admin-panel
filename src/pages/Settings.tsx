@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Bell,
   User,
+  Users,
   Building,
   Mail,
   Shield,
@@ -28,6 +29,7 @@ import {
   Settings as SettingsIcon,
 } from "lucide-react";
 import { StatusSettingsTab } from "@/components/StatusSettingsTab";
+import { RolePermissionsTab } from "@/components/RolePermissionsTab";
 
 const Settings = () => {
   return (
@@ -43,7 +45,7 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8 bg-white/60 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-9 bg-white/60 backdrop-blur-sm">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profile
@@ -74,6 +76,10 @@ const Settings = () => {
             <TabsTrigger value="status" className="flex items-center gap-2">
               <ListChecks className="w-4 h-4" />
               Status
+            </TabsTrigger>
+            <TabsTrigger value="roles" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Roles
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
@@ -415,6 +421,11 @@ const Settings = () => {
           
           <TabsContent value="status">
             <StatusSettingsTab />
+          </TabsContent>
+
+          {/* Role-Based Access Tab */}
+          <TabsContent value="roles">
+            <RolePermissionsTab />
           </TabsContent>
 
         
