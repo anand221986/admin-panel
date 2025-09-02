@@ -47,7 +47,7 @@ interface Template {
   subject?: string;
   body: string;
   shareWithEveryone: boolean;
-  type: "email" | "sms" | "notes" | "aira";
+  type: "email" | "sms" | "notes" | "aira" | "activity" | "calls";
 }
 
 interface APITemplate {
@@ -81,6 +81,8 @@ const TemplatesManager: React.FC = () => {
     sms: true,
     notes: true,
     aira: true,
+    activity: true,
+    calls: true,
   });
 
   const [dialogs, setDialogs] = useState({
@@ -88,6 +90,8 @@ const TemplatesManager: React.FC = () => {
     sms: false,
     notes: false,
     aira: false,
+    activity: false,
+    calls: false,
   });
 
   const [formData, setFormData] = useState({
@@ -1244,6 +1248,8 @@ const TemplatesManager: React.FC = () => {
         <TemplateSection title="Email Templates" type="email" icon="✉️" />
         <TemplateSection title="SMS Templates" type="sms" icon="💬" />
         <TemplateSection title="Notes Templates" type="notes" icon="📝" />
+        <TemplateSection title="Activity Templates" type="activity" icon="🎯" />
+        <TemplateSection title="Calls Templates" type="calls" icon="📞" />
         <TemplateSection title="AIRA Prompt Templates" type="aira" icon="🤖" />
       </div>
 
@@ -1873,6 +1879,239 @@ const TemplatesManager: React.FC = () => {
               </Button>
               <Button
                 onClick={() => handleSave("notes")}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {editing.isEditing ? "Update" : "Save"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Activity Templates Dialog */}
+      <Dialog
+        open={dialogs.activity}
+        onOpenChange={(open) => !open && closeDialog("activity")}
+      >
+        <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editing.isEditing
+                ? "Edit Activity Template"
+                : "Add Activity Template"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">
+                  TEMPLATE NAME <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  placeholder="Enter template name..."
+                  value={formData.templateName}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      templateName: e.target.value,
+                    }))
+                  }
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700">
+                  TEMPLATE TYPE <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.templateType}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, templateType: value }))
+                  }
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select a template type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="meeting">Meeting Notes</SelectItem>
+                    <SelectItem value="task">Task Activity</SelectItem>
+                    <SelectItem value="follow-up">Follow-up Activity</SelectItem>
+                    <SelectItem value="reminder">Reminder Activity</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                SUBJECT <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                placeholder="Enter activity subject..."
+                value={formData.subject}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, subject: e.target.value }))
+                }
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700">BODY</Label>
+              <Textarea
+                placeholder="Enter activity description..."
+                value={formData.body}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, body: e.target.value }))
+                }
+                className="mt-2"
+                rows={8}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="shareWithEveryone-activity"
+                checked={formData.shareWithEveryone}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    shareWithEveryone: !!checked,
+                  }))
+                }
+              />
+              <Label
+                htmlFor="shareWithEveryone-activity"
+                className="text-sm text-gray-700"
+              >
+                Share template with everyone
+              </Label>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button variant="outline" onClick={() => handleCancel("activity")}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => handleSave("activity")}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {editing.isEditing ? "Update" : "Save"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Calls Templates Dialog */}
+      <Dialog
+        open={dialogs.calls}
+        onOpenChange={(open) => !open && closeDialog("calls")}
+      >
+        <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editing.isEditing
+                ? "Edit Call Template"
+                : "Add Call Template"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">
+                  TEMPLATE NAME <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  placeholder="Enter template name..."
+                  value={formData.templateName}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      templateName: e.target.value,
+                    }))
+                  }
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-700">
+                  TEMPLATE TYPE <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.templateType}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, templateType: value }))
+                  }
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select a template type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="screening">Screening Call</SelectItem>
+                    <SelectItem value="interview">Interview Call</SelectItem>
+                    <SelectItem value="follow-up">Follow-up Call</SelectItem>
+                    <SelectItem value="closing">Closing Call</SelectItem>
+                    <SelectItem value="reference">Reference Call</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                SUBJECT <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                placeholder="Enter call subject..."
+                value={formData.subject}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, subject: e.target.value }))
+                }
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700">CALL NOTES</Label>
+              <Textarea
+                placeholder="Enter call notes template..."
+                value={formData.body}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, body: e.target.value }))
+                }
+                className="mt-2"
+                rows={8}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="shareWithEveryone-calls"
+                checked={formData.shareWithEveryone}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    shareWithEveryone: !!checked,
+                  }))
+                }
+              />
+              <Label
+                htmlFor="shareWithEveryone-calls"
+                className="text-sm text-gray-700"
+              >
+                Share template with everyone
+              </Label>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button variant="outline" onClick={() => handleCancel("calls")}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => handleSave("calls")}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 {editing.isEditing ? "Update" : "Save"}
