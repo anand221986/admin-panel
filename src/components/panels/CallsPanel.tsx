@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
+// import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,10 +60,28 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
   ]);
   const [notes, setNotes] = useState<string>("");
   const [template, setTemplate] = useState<string>("");
+  const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [templates, setTemplates] = useState<{ id: string; template_name: string; subject: string; body: string }[]>([]);
 
   const removeAssoc = (name: string) => {
     setAssociatedWith((prev) => prev.filter((n) => n !== name));
   };
+
+  const fetchTemplates = async () => {
+    try {
+      const res = await fetch("http://16.171.117.2:3000/settings/getAllTemplates");
+      const data = await res.json();
+      const result = data.result;
+      const callsTemplates = result.filter((tpl: any) => tpl.template_type === "calls");
+      setTemplates(callsTemplates);
+    } catch (error) {
+      console.error("Failed to fetch templates:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
     const handleSend = async() => {
        if (!notes.trim()) {
       toast.error("Please enter call notes.");
@@ -242,13 +261,25 @@ export function CallsPanel({ candidate, onLogCall }: CallsPanelProps) {
       </div>
 
       <div className="flex items-center justify-between">
-        <Select value={template} onValueChange={(v) => setTemplate(v)}>
+        <Select value={selectedTemplate} onValueChange={(value) => {
+          setSelectedTemplate(value);
+          const tpl = templates.find((t) => String(t.id) === String(value));
+          if (tpl) {
+            // Replace placeholders like {candidate} with actual name
+            const replacedSubject = tpl.subject?.replace(/{candidate}/g, candidate.candidateName);
+            const replacedBody = tpl.body?.replace(/{candidate}/g, candidate.candidateName);
+            setNotes(replacedBody || "");
+          }
+        }}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Select template" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="tmpl1">Template 1</SelectItem>
-            <SelectItem value="tmpl2">Template 2</SelectItem>
+            {templates.map((tpl) => (
+              <SelectItem key={tpl.id} value={tpl.id}>
+                {tpl.template_name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
