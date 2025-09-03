@@ -31,7 +31,26 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
-import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import {
+  CSS,
+} from "@dnd-kit/utilities";
 
 const API_BASE_URL = "http://16.171.117.2:3000";
 
@@ -49,7 +68,193 @@ interface Status {
   is_active: boolean;
   recruiter_status: RecruiterStatus[];
   created_at?: string;
+  order?: number;
 }
+
+interface SortableStatusItemProps {
+  status: Status;
+  onToggleActive: (status: Status, childIndex?: number) => void;
+  onEdit: (mode: "parent_edit" | "child_edit", status: Status, childIndex?: number) => void;
+  onDelete: (id: number) => void;
+  onDeleteRecruiterStatus: (status: Status, index: number) => void;
+  onAddRecruiterStatus: (status: Status) => void;
+}
+
+const SortableStatusItem = ({
+  status,
+  onToggleActive,
+  onEdit,
+  onDelete,
+  onDeleteRecruiterStatus,
+  onAddRecruiterStatus,
+}: SortableStatusItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: status.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className={`bg-slate-50/80 p-3 rounded-lg ${isDragging ? 'z-10' : ''}`}
+    >
+      <div className="group flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-1 hover:bg-slate-200 rounded transition-colors"
+          >
+            <GripVertical className="w-4 h-4 text-slate-400" />
+          </div>
+          <Switch
+            checked={status.is_active}
+            onCheckedChange={() => onToggleActive(status)}
+          />
+          <div className="flex items-center gap-2.5">
+            <span
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: status.color }}
+            />
+            <span
+              className={`font-medium text-sm ${
+                status.is_active
+                  ? "text-slate-800"
+                  : "text-slate-400 line-through"
+              }`}
+            >
+              {status.name}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onEdit("parent_edit", status)}
+            className="h-7 w-7"
+          >
+            <Edit className="w-3.5 h-3.5 text-slate-500" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 hover:bg-red-50"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-500" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDesc>
+                  This will permanently delete the "{status.name}" status.
+                </AlertDialogDesc>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => onDelete(status.id)}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </div>
+      <div className="pl-12 pt-3 space-y-2">
+        {status.recruiter_status?.map((rs, index) => (
+          <div
+            key={index}
+            className="group flex items-center justify-between pl-4 border-l-2"
+          >
+            <div className="flex items-center gap-4">
+              <Switch
+                checked={rs.is_active}
+                onCheckedChange={() => onToggleActive(status, index)}
+                className="h-4 w-8 [&>span]:h-3 [&>span]:w-3 [&>span]:data-[state=checked]:translate-x-4"
+              />
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: rs.color }}
+                />
+                <span
+                  className={`text-xs ${
+                    rs.is_active
+                      ? "text-slate-600"
+                      : "text-slate-400 line-through"
+                  }`}
+                >
+                  {rs.name}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onEdit("child_edit", status, index)}
+                className="h-6 w-6"
+              >
+                <Edit className="w-3 h-3 text-slate-500" />
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-3 h-3 text-red-500" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDesc>
+                      This will delete the "{rs.name}" recruiter status.
+                    </AlertDialogDesc>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onDeleteRecruiterStatus(status, index)}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        ))}
+        <div className="pl-4 border-l-2">
+          <Button
+            variant="link"
+            size="sm"
+            onClick={() => onAddRecruiterStatus(status)}
+            className="text-xs h-8 text-blue-600"
+          >
+            <Plus className="w-3 h-3 mr-1.5" /> Add Recruiter Status
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const PRESET_COLORS = [
   "#2563eb",
@@ -85,6 +290,45 @@ export const StatusSettingsTab = () => {
     useState<number | null>(null);
   const [statusName, setStatusName] = useState("");
   const [statusColor, setStatusColor] = useState("#808080");
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = statuses.findIndex((status) => status.id === active.id);
+      const newIndex = statuses.findIndex((status) => status.id === over.id);
+
+      const reorderedStatuses = arrayMove(statuses, oldIndex, newIndex);
+      setStatuses(reorderedStatuses);
+
+      // Update order on the server
+      try {
+        const orderUpdates = reorderedStatuses.map((status, index) => ({
+          id: status.id,
+          order: index,
+        }));
+
+        await axios.put(`${API_BASE_URL}/candidate/updateStatusOrder`, {
+          statusOrders: orderUpdates,
+        });
+
+        toast.success("Status order updated successfully!");
+      } catch (error) {
+        console.error("Failed to update status order:", error);
+        toast.error("Failed to update status order. Please refresh and try again.");
+        // Revert the changes if the API call fails
+        fetchStatuses();
+      }
+    }
+  };
 
   const fetchStatuses = async () => {
     setIsLoading(true);
@@ -147,7 +391,7 @@ export const StatusSettingsTab = () => {
     }
     setIsSaving(true);
 
-    let payload: any = {};
+    let payload: Record<string, unknown> = {};
     let url = "";
     let method: "post" | "put" = "put";
 
@@ -403,9 +647,14 @@ export const StatusSettingsTab = () => {
     <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle className="text-slate-800 text-md">
-            Manage Candidate Statuses
-          </CardTitle>
+          <div>
+            <CardTitle className="text-slate-800 text-md">
+              Manage Candidate Statuses
+            </CardTitle>
+            <p className="text-sm text-slate-500 mt-1">
+              Drag and drop statuses to reorder them
+            </p>
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -417,157 +666,30 @@ export const StatusSettingsTab = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {statuses.map((status) => (
-            <div key={status.id} className="bg-slate-50/80 p-3 rounded-lg">
-              <div className="group flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Switch
-                    checked={status.is_active}
-                    onCheckedChange={() => handleToggleActive(status)}
-                  />
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: status.color }}
-                    />
-                    <span
-                      className={`font-medium text-sm ${
-                        status.is_active
-                          ? "text-slate-800"
-                          : "text-slate-400 line-through"
-                      }`}
-                    >
-                      {status.name}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleOpenDialog("parent_edit", status)}
-                    className="h-7 w-7"
-                  >
-                    <Edit className="w-3.5 h-3.5 text-slate-500" />
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDesc>
-                          This will permanently delete the "{status.name}"
-                          status.
-                        </AlertDialogDesc>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteStatus(status.id)}
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </div>
-              <div className="pl-8 pt-3 space-y-2">
-                {status.recruiter_status?.map((rs, index) => (
-                  <div
-                    key={index}
-                    className="group flex items-center justify-between pl-4 border-l-2"
-                  >
-                    <div className="flex items-center gap-4">
-                      <Switch
-                        checked={rs.is_active}
-                        onCheckedChange={() =>
-                          handleToggleActive(status, index)
-                        }
-                        className="h-4 w-8 [&>span]:h-3 [&>span]:w-3 [&>span]:data-[state=checked]:translate-x-4"
-                      />
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full"
-                          style={{ backgroundColor: rs.color }}
-                        />
-                        <span
-                          className={`text-xs ${
-                            rs.is_active
-                              ? "text-slate-600"
-                              : "text-slate-400 line-through"
-                          }`}
-                        >
-                          {rs.name}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          handleOpenDialog("child_edit", status, index)
-                        }
-                        className="h-6 w-6"
-                      >
-                        <Edit className="w-3 h-3 text-slate-500" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-3 h-3 text-red-500" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                            <AlertDialogDesc>
-                              This will delete the "{rs.name}" recruiter status.
-                            </AlertDialogDesc>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() =>
-                                handleDeleteRecruiterStatus(status, index)
-                              }
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                ))}
-                <div className="pl-4 border-l-2">
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => handleOpenDialog("child_add", status)}
-                    className="text-xs h-8 text-blue-600"
-                  >
-                    <Plus className="w-3 h-3 mr-1.5" /> Add Recruiter Status
-                  </Button>
-                </div>
-              </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext 
+            items={statuses.map(s => s.id)} 
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-4">
+              {statuses.map((status) => (
+                <SortableStatusItem
+                  key={status.id}
+                  status={status}
+                  onToggleActive={handleToggleActive}
+                  onEdit={handleOpenDialog}
+                  onDelete={handleDeleteStatus}
+                  onDeleteRecruiterStatus={handleDeleteRecruiterStatus}
+                  onAddRecruiterStatus={(status) => handleOpenDialog("child_add", status)}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
         {renderDialog()}
       </CardContent>
     </Card>

@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { API_BASE_URL } from "../../config/api";
+import { formatAddress, formatExperience, formatEducation } from "@/lib/candidate-format-utils";
 
 interface CandidateForm {
   first_name: string;
@@ -29,7 +30,7 @@ interface CandidateForm {
 }
 
 interface EditCandidateFormProps {
-  candidate: any;
+  candidate: CandidateForm & { id: string };
   onSaveSuccess: () => void;
   onCancel: () => void;
 }
@@ -57,9 +58,12 @@ export const EditCandidateForm: React.FC<EditCandidateFormProps> = ({
     if (candidate) {
       setFormData({
         ...candidate,
+        address: formatAddress(candidate.address),
+        experience: formatExperience(candidate.experience),
+        education: formatEducation(candidate.education),
         skill: Array.isArray(candidate.skill)
           ? candidate.skill
-          : parseJsonString<string[]>(candidate.skill as any, []),
+          : parseJsonString<string[]>(candidate.skill as string, []),
       });
       setError(null);
     }
@@ -97,8 +101,12 @@ export const EditCandidateForm: React.FC<EditCandidateFormProps> = ({
       } else {
         throw new Error(response.data.message || "Update failed");
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || "Failed to update candidate";
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : typeof err === 'object' && err !== null && 'response' in err 
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to update candidate"
+          : "Failed to update candidate";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
