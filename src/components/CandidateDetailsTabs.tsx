@@ -163,7 +163,11 @@ export default function CandidateDetailsTabs({
               </TabsContent>
               <TabsContent value="tasks">
                 <TasksPanel
-                  candidateId={candidate.id}
+                   candidate={{
+                          candidateId: candidate.id,
+                          candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                        }}
+              
                   authorId={1}
                   refreshTrigger={handleAdded}
                 />
@@ -263,7 +267,10 @@ export default function CandidateDetailsTabs({
                     </TabsContent>
                     <TabsContent value="tasks">
                       <TasksPanel
-                        candidateId={candidate.id}
+                          candidate={{
+                          candidateId: candidate.id,
+                          candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                        }}
                         authorId={1}
                         onTaskAdded={handleAdded}
                       />
@@ -421,7 +428,10 @@ export default function CandidateDetailsTabs({
                   </TabsContent>
                   <TabsContent value="tasks">
                     <TasksPanel
-                      candidateId={candidate.id}
+                      candidate={{
+                        candidateId: candidate.id,
+                        candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                      }}
                       authorId={1}
                       onTaskAdded={handleAdded}
                     />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,19 +12,24 @@ import {
 } from "@/components/ui/select";
 import { PhoneCall } from "lucide-react";
 import { toast } from "sonner";
-
-interface TasksPanelProps {
+export interface Person {
   candidateId: number;
+  candidateName: string;
+}
+interface TasksPanelProps {
+  candidate: Person;
   authorId: number;
   onTaskAdded?: () => void;
   refreshTrigger?: () => void;
+
 }
 
 export function TasksPanel({
-  candidateId,
+  candidate,
   authorId,
   onTaskAdded,
 }: TasksPanelProps) {
+  const { candidateId, candidateName } = candidate;
   const [taskName, setTaskName] = useState("");
   const [description, setDescription] = useState("");
   const [associatedWith, setAssociatedWith] = useState("");
@@ -34,7 +39,8 @@ export function TasksPanel({
   const [reminderDate, setReminderDate] = useState("2025-07-03");
   const [reminderTime, setReminderTime] = useState("09:00");
   const [saving, setSaving] = useState(false);
-
+  
+ 
   const handleSave = async () => {
     if (!taskName.trim()) {
       toast.error("Please provide a task name.");
@@ -43,7 +49,7 @@ export function TasksPanel({
     setSaving(true);
     try {
       const payload = {
-        candidate_id: candidateId,
+        candidate_id: candidate.candidateId,
         author_id: authorId,
         task: taskName,
       };
@@ -68,6 +74,10 @@ export function TasksPanel({
       setSaving(false);
     }
   };
+   useEffect(()=>{
+    if(candidateName)
+  setAssociatedWith(candidateName);
+    },[])
 
   return (
     <div className="flex flex-col border rounded-lg bg-white shadow-sm mb-4">
