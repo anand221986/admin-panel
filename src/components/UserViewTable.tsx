@@ -21,6 +21,8 @@ import {
   DollarSign,
   GraduationCap,
   Star,
+    Edit,
+  Trash2,
 } from "lucide-react";
 import {
   Table,
@@ -440,7 +442,12 @@ export default function CandidateViewList({
                           </TableCell>
                         )}
                         {/* Edit Button */}
+                        <TableCell className="min-w-[120px] whitespace-nowrap">
+                            <div className="flex items-center gap-2 ">
                        <Button
+                       size="sm" 
+                                variant="outline"
+                                className="h-8 px-3 text-xs bg-blue-400 hover:bg-blue-500 hover:text-black-600 hover:border-blue-200"
   onClick={() => {
     setEditCandidate({
       ...candidate,
@@ -452,13 +459,15 @@ export default function CandidateViewList({
     setIsAddModalOpen(true);
   }}
 >
-                          Edit
+                          <Edit className="w-3 h-3 mr-1 " />
+                                Edit
                         </Button>
 
                         {/* Delete Button */}
                         <Button
                           size="sm"
-                          variant="destructive"
+                                variant="outline"
+                                className="h-8 px-3 text-xs bg-red-500 hover:bg-red-600 hover:text-black-600 hover:border-red-200"
                           onClick={async () => {
                             try {
                               await axios.delete(`${API_BASE_URL}/user/${candidate.id}`);
@@ -470,8 +479,11 @@ export default function CandidateViewList({
                             }
                           }}
                         >
-                          Delete
+                        <Trash2 className="w-3 h-3 mr-1" />
+                                Delete
                         </Button>
+                        </div>
+                        </TableCell>
                       </TableRow>
                     );
                   })
