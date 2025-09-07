@@ -10,6 +10,7 @@ export const ALL_COLUMNS: ColumnConfig[] = [
   { key: "status", label: "Status" },
   { key: "role", label: "Role" },
   { key: "created_at", label: "Created At" },
+  { key: "actions", label: "Actions" },
 ];
 
 export const TABS = [

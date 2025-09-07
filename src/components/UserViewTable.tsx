@@ -22,6 +22,8 @@ import {
   GraduationCap,
   Star,
   Plus,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import {
   Table,
@@ -250,7 +252,9 @@ export default function CandidateViewList({
     recruiter_status: string
   ) => {
     try {
-      await axios.put(`${API_BASE_URL}/candidate/${id}`, { recruiter_status });
+      await axios.put(`${API_BASE_URL}/candidate/${id}`, {
+        recruiter_status,
+      });
       setLocalCandidates((prev) =>
         prev.map((c) => (c.id === id ? { ...c, recruiter_status } : c))
       );
@@ -258,6 +262,16 @@ export default function CandidateViewList({
       console.error("Failed to update recruiter status", err);
       toast.error("Could not update recruiter status");
     }
+  };
+
+  const handleEditUser = (user: CandidateForm) => {
+    console.log("Edit user:", user);
+    toast.info("Edit functionality will be implemented soon");
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    console.log("Delete user:", userId);
+    toast.info("Delete functionality will be implemented soon");
   };
 
   const handleHMApprovalChange = async (id: number, hmapproval: string) => {
@@ -436,7 +450,17 @@ export default function CandidateViewList({
                         </TableCell>
                         {visibleColumns.includes("name") && (
                           <TableCell className="min-w-[200px] py-2">
-                            <UserActionsPopover candidateId={candidate.id}>
+                            <UserActionsPopover 
+                              candidate={{
+                                ...candidate,
+                                notice_period: "",
+                                institutiontier: "",
+                                companytier: "",
+                                jobs_assigned: []
+                              }}
+                              candidateId={candidate.id}
+                              fetchCandidates={fetchCandidates}
+                            >
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                   <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
@@ -582,6 +606,30 @@ export default function CandidateViewList({
                           {visibleColumns.includes("created_at") && (
                           <TableCell className="min-w-[200px] whitespace-nowrap text-sm text-slate-500">
                            {candidate.created_dt}
+                          </TableCell>
+                        )}
+                        {visibleColumns.includes("actions") && (
+                          <TableCell className="min-w-[120px] whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 px-3 text-xs"
+                                onClick={() => handleEditUser(candidate)}
+                              >
+                                <Edit className="w-3 h-3 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 px-3 text-xs hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                                onClick={() => handleDeleteUser(candidate.id)}
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
                           </TableCell>
                         )}
                         {visibleColumns.includes("current_company") && (

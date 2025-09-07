@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import {
   Select,
@@ -41,6 +41,8 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
    const [emailContent, setEmailContent] = useState("");
     const [saving, setSaving] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState<() => void>(() => () => { });
+    const [selectedTemplate, setSelectedTemplate] = useState("")
+    const [templates, setTemplates] = useState<{ id: string; template_name: string,subject:string,body:string }[]>([])
    const handleSave = async () => {
     if (!emailSubject.trim()) {
       toast.error("Please enter email subject line.");
@@ -79,6 +81,21 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
       setSaving(false);
     }
   };
+  const fetchTemplates = async () => {
+      try {
+        const res = await fetch("http://16.171.117.2:3000/settings/getAllTemplates")
+        const data = await res.json()
+        const result=data.result;
+        const emailTemplates = result.filter((tpl: any) => tpl.template_type === "email")
+        setTemplates(emailTemplates)
+      } catch (error) {
+        console.error("Failed to fetch templates:", error)
+      }
+    }
+
+useEffect(()=>{
+fetchTemplates();
+  },[])
   return (
     <div className="space-y-4 p-6 bg-white rounded-lg shadow mb-4">
             <div className="flex items-center space-x-2">
@@ -110,13 +127,26 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
         <Input className="flex-1 mr-4" placeholder="Subject" value={emailSubject}  onChange={(e) => {
           setEmailSubject(e.target.value)
         }} />
-        <Select defaultValue="">
+        <Select value={selectedTemplate}  onValueChange={(value)=>{
+setSelectedTemplate(value);
+const tpl = templates.find((t) => String(t.id) === String(value));
+ if (tpl) {
+      // Replace placeholders like {candidate} with actual name
+      const replacedSubject = tpl.subject?.replace(/{candidate}/g, candidate.candidateName);
+      const replacedBody = tpl.body?.replace(/{candidate}/g, candidate.candidateName);
+      setEmailSubject(replacedSubject || "");
+      setEmailContent(replacedBody || "");
+    }
+        }}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Select template" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="temp1">Template 1</SelectItem>
-            <SelectItem value="temp2">Template 2</SelectItem>
+           {templates.map((tpl) => (
+            <SelectItem key={tpl.id} value={tpl.id}>
+              {tpl.template_name}
+            </SelectItem>
+          ))}
           </SelectContent>
         </Select>
       </div>
