@@ -362,7 +362,7 @@ export default function CandidateDetailsTabs({
                       <ScorecardsPanel scorecards={candidate.scorecards} />
                     </TabsContent>
                     <TabsContent value="conversations">
-                      <ConversationsPanel conversations={candidate.conversations} />
+                      <ConversationsPanel candidateId={candidate.id} conversations={candidate.conversations} />
                     </TabsContent>
                     <TabsContent value="calls_list">
                       <CallsListPanel
@@ -523,7 +523,7 @@ export default function CandidateDetailsTabs({
                     <ScorecardsPanel scorecards={candidate.scorecards} />
                   </TabsContent>
                   <TabsContent value="conversations">
-                    <ConversationsPanel conversations={candidate.conversations} />
+                    <ConversationsPanel candidateId={candidate.id} conversations={candidate.conversations} />
                   </TabsContent>
                   <TabsContent value="calls_list">
                     <CallsListPanel

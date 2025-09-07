@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 export interface ConversationItem {
   id: string;
@@ -16,6 +17,7 @@ export interface ConversationItem {
 
 interface ConversationsPanelProps {
   conversations?: ConversationItem[];
+  candidateId:number;
 }
 
 const sampleConversations: ConversationItem[] = [
@@ -57,12 +59,15 @@ const sampleConversations: ConversationItem[] = [
 ];
 
 export function ConversationsPanel({ conversations }: ConversationsPanelProps) {
+    const { getUserRoles, getUserDetails} = useAuth();
+       const userDetails= getUserDetails();
+       const recruiterId=userDetails.id;
   const [fetchedConversations, setFetchedConversations] = useState<ConversationItem[]>([]);
   const { toast } = useToast(); // ✅ Destructure toast
 
   const handleSync = async () => {
     try {
-      const res = await fetch("http://16.171.117.2:3000/candidate/syncCall/166", {
+      const res = await fetch(`{http://16.171.117.2:3000/candidate/sync/${recruiterId}`, {
         method: "POST",
       });
       if (!res.ok) {
