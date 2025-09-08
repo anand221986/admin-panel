@@ -64,7 +64,7 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
         candidate_id: candidate.candidateId,
         emailSubject: emailSubject,
         emailDescription: emailContent,
-        author_id: 1
+        author_id: userDetails.recruiter_Id
       };
       const res = await axios.post(
         `http://16.171.117.2:3000/candidate/sendCandidateEmail`,
@@ -74,7 +74,7 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
         toast.success(res.data.message || "email Send successfully.");
          refreshTrigger?.();
       } else {
-        toast.error(res.data.message || "Failed to send email.");
+        toast.error(res.data.error || "Failed to send email.");
       }
     } catch (err: any) {
       console.error("Error sending email", err);
