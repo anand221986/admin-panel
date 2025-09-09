@@ -130,7 +130,8 @@ export default function Jobs() {
       return;
     }
     try {
-      const jobsResponse = await axios.get(`${API_BASE_URL}/jobs/getAllJobs`);
+      const agency_id = localStorage.getItem("agency_id");
+      const jobsResponse = await axios.get(`${API_BASE_URL}/jobs/getAllJobs?agency_id=${agency_id}`);
       const jobsData = jobsResponse.data.result;
 
       const jobsWithData = await Promise.all(

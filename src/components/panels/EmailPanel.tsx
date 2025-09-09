@@ -24,6 +24,7 @@ import {
   Highlighter,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 export interface Person {
   candidateId: number;
@@ -43,6 +44,8 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
     const [refreshTrigger, setRefreshTrigger] = useState<() => void>(() => () => { });
     const [selectedTemplate, setSelectedTemplate] = useState("")
     const [templates, setTemplates] = useState<{ id: string; template_name: string,subject:string,body:string }[]>([])
+    const { getUserRoles, getUserDetails} = useAuth();
+    const userDetails= getUserDetails();
    const handleSave = async () => {
     if (!emailSubject.trim()) {
       toast.error("Please enter email subject line.");
@@ -100,7 +103,7 @@ fetchTemplates();
     <div className="space-y-4 p-6 bg-white rounded-lg shadow mb-4">
             <div className="flex items-center space-x-2">
         <span className="font-normal">From</span>
-        <div className="flex-1 flex items-center flex-wrap gap-2 bg-gray-50 p-2 rounded-lg">Recruiter1@a1selectors.com
+        <div className="flex-1 flex items-center flex-wrap gap-2 bg-gray-50 p-2 rounded-lg">{userDetails?.email}
         </div>
       </div>
 
