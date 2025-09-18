@@ -17,6 +17,8 @@ const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Users = lazy(() => import("./pages/Users"));
 const Agenncies = lazy(() => import("./pages/Agencies"));
+const AgenciesDashboard = lazy(() => import("./pages/AgenciesDashboard"));
+const Cms = lazy(() => import("./pages/Cms"));
  
 
 
@@ -126,6 +128,24 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+               
+               <Route
+                path="/cms"
+                element={
+                  <ProtectedRoute>
+                    <Cms />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+  path="/agencies/:id"
+  element={
+    <ProtectedRoute>
+      <AgenciesDashboard />
+    </ProtectedRoute>
+  }
+/>
               <Route path="*" element={<NotFound />} />
             </Routes>
             </Suspense>

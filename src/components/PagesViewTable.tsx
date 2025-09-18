@@ -40,7 +40,7 @@ import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
 import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateUserFieldsModal";
 import AssignToJobModal from "@/components/modals/AssigntoJobModal";
 
-import { ALL_COLUMNS, TABS } from "@/lib/user-config";
+import { ALL_COLUMNS, TABS,ALL_PAGES_COLUMNS } from "@/lib/user-config";
 import { UserActionsPopover } from "./userActionsPopover";
 
 const API_BASE_URL = "http://16.171.117.2:3000";
@@ -295,82 +295,7 @@ export default function CandidateViewList({
   return (
     <div className="space-y-4 max-w-[95vw]">
       <Card className="border-0 bg-white/60 shadow-sm backdrop-blur-sm">
-        <CardContent className="p-4">
-          <div className="flex flex-col justify-between gap-3 sm:flex-row">
-            {/* Search Input */}
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, skills, company..."
-                className="h-9 bg-white/80 pl-10"
-              />
-            </div>
 
-            {/* Role Dropdown */}
-            <div className="w-full sm:w-40">
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Admin">Admin</SelectItem>
-                  {/* <SelectItem value="Candidate">Candidate</SelectItem>
-                  <SelectItem value="HiringManager">Hiring Manager</SelectItem> */}
-                  <SelectItem value="Interviewer">Interviewer</SelectItem>
-                  <SelectItem value="Recruiter">Recruiter</SelectItem>
-                  <SelectItem value="Vendor">Vendor</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Agency Dropdown */}
-            <div className="w-full sm:w-48">
-              <Select value={selectedAgency} onValueChange={setSelectedAgency}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Select Agency" />
-                </SelectTrigger>
-                <SelectContent>
-                  {agencies.map((agency) => (
-                    <SelectItem key={agency.id} value={agency.id.toString()}>
-                      {agency.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex gap-2">
-              {TABS.map(([label, key]) => (
-                <Button
-                  key={key}
-                  size="sm"
-                  variant={activeTab === key ? "secondary" : "outline"}
-                  onClick={() => {
-                    setActiveTab(key);
-                    setSearchQuery("");
-                  }}
-                >
-                  {label}
-                </Button>
-              ))}
-
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedRole("");
-                setSelectedAgency("");
-              }}
-            >
-              Clear
-            </Button>
-          </div>
-        </CardContent>
       </Card>
 
       {/* Table Section */}
@@ -386,7 +311,7 @@ export default function CandidateViewList({
                       onCheckedChange={toggleAll}
                     />
                   </TableHead>
-                  {ALL_COLUMNS.map((col) =>
+                  {ALL_PAGES_COLUMNS.map((col) =>
                     visibleColumns.includes(col.key) ? (
                       <TableHead
                         className="whitespace-nowrap text-black"
