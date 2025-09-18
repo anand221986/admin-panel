@@ -118,7 +118,7 @@ interface CandidateViewListProps {
   fetchCandidates: () => void;
 }
 
-export default function CandidateViewList({
+export default function PagesViewList({
   loading,
   candidates,
   fetchCandidates,
