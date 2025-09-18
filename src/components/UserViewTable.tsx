@@ -21,7 +21,8 @@ import {
   DollarSign,
   GraduationCap,
   Star,
-    Edit,
+  Plus,
+  Edit,
   Trash2,
 } from "lucide-react";
 import {
@@ -207,6 +208,86 @@ export default function CandidateViewList({
     });
   };
 
+  const toggleColumn = (key: string, show: boolean) => {
+    setVisibleColumns((prev) =>
+      show ? [...prev, key] : prev.filter((c) => c !== key)
+    );
+  };
+
+  const handleDelete = async () => {
+    if (!selected.size) return;
+    try {
+      await axios.post(`${API_BASE_URL}/user/bulk-delete`, {
+        data: { ids: [...selected] },
+      });
+      setLocalCandidates((prev) => prev.filter((c) => !selected.has(c.id)));
+      setSelected(new Set());
+      toast.success("Deleted!");
+    } catch (err) {
+      console.error("Failed to delete users", err);
+      toast.error("Could not delete users");
+    }
+  };
+
+  const handleEdit = () => {
+    if (!selected.size) {
+      toast.error("Select at least one candidate first");
+      return;
+    }
+    setIsBulkModalOpen(true);
+  };
+
+  const handleStatusChange = async (id: number, status: string) => {
+    try {
+      await axios.put(`${API_BASE_URL}/candidate/${id}`, { status });
+      setLocalCandidates((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, status } : c))
+      );
+    } catch (err) {
+      console.error("Failed to update status", err);
+      toast.error("Could not update status");
+    }
+  };
+
+  const handleRecruiterStatusChange = async (
+    id: number,
+    recruiter_status: string
+  ) => {
+    try {
+      await axios.put(`${API_BASE_URL}/candidate/${id}`, {
+        recruiter_status,
+      });
+      setLocalCandidates((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, recruiter_status } : c))
+      );
+    } catch (err) {
+      console.error("Failed to update recruiter status", err);
+      toast.error("Could not update recruiter status");
+    }
+  };
+
+  const handleEditUser = (user: CandidateForm) => {
+    console.log("Edit user:", user);
+    toast.info("Edit functionality will be implemented soon");
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    console.log("Delete user:", userId);
+    toast.info("Delete functionality will be implemented soon");
+  };
+
+  const handleHMApprovalChange = async (id: number, hmapproval: string) => {
+    try {
+      await axios.put(`${API_BASE_URL}/candidate/${id}`, { hmapproval });
+      setLocalCandidates((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, hmapproval } : c))
+      );
+    } catch (err) {
+      console.error("Failed to update HM approval", err);
+      toast.error("Could not update HM approval");
+    }
+  };
+
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const start = (currentPage - 1) * itemsPerPage;
   const paginated = filtered.slice(start, start + itemsPerPage);
@@ -353,7 +434,7 @@ export default function CandidateViewList({
                           />
                         </TableCell>
                         {visibleColumns.includes("name") && (
-                          <TableCell>
+                          <TableCell className="min-w-[200px] py-2">
                             <UserActionsPopover
                               candidateId={candidate.id}
                               candidate={candidate}
@@ -399,6 +480,30 @@ export default function CandidateViewList({
                         )}
                         {visibleColumns.includes("created_at") && (
                           <TableCell>{candidate.created_dt}</TableCell>
+                        )}
+                        {visibleColumns.includes("actions") && (
+                          <TableCell className="min-w-[120px] whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 px-3 text-xs"
+                                onClick={() => handleEditUser(candidate)}
+                              >
+                                <Edit className="w-3 h-3 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 px-3 text-xs hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                                onClick={() => handleDeleteUser(candidate.id)}
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          </TableCell>
                         )}
                         {visibleColumns.includes("current_company") && (
                           <TableCell>{candidate.current_company || "N/A"}</TableCell>
