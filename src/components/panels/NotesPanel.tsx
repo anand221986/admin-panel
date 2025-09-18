@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -30,6 +30,8 @@ const [notesName, setNotesName] = useState("");
   const [template, setTemplate] = useState("default");
   const [saving, setSaving] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState<() => void>(() => () => {});
+  const [templates, setTemplates] = useState<{ id: string; template_name: string,subject:string,body:string }[]>([])
+  const [selectedTemplate, setSelectedTemplate] = useState("")
   const handleSave = async () => {
     if (!notesName.trim()) {
       toast.error("Please provide a note Description.");
@@ -63,6 +65,22 @@ const [notesName, setNotesName] = useState("");
       setSaving(false);
     }
   };
+
+   const fetchTemplates = async () => {
+      try {
+        const res = await fetch("http://16.171.117.2:3000/settings/getAllTemplates")
+        const data = await res.json()
+        const result=data.result;
+        const emailTemplates = result.filter((tpl: any) => tpl.template_type === "notes")
+        setTemplates(emailTemplates)
+      } catch (error) {
+        console.error("Failed to fetch templates:", error)
+      }
+    }
+
+ useEffect(()=>{
+fetchTemplates();
+  },[])
 
   return (
     <div className="flex flex-col border rounded-lg bg-white shadow-sm mb-4">
@@ -140,14 +158,23 @@ const [notesName, setNotesName] = useState("");
       </div>
 
       <div className="flex items-center justify-between px-4 py-3">
-        <Select onValueChange={(val) => setTemplate(val)}>
+               <Select value={selectedTemplate}  onValueChange={(value)=>{
+setSelectedTemplate(value);
+const tpl = templates.find((t) => String(t.id) === String(value));
+ if (tpl) {
+       const replacedBody = tpl.body?.replace(/{candidate}/g, '');
+      setNotesName(replacedBody || "");
+    }
+        }}>
           <SelectTrigger className="w-auto text-sm">
             <SelectValue placeholder="Select template" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="default">Default</SelectItem>
-            <SelectItem value="followup">Follow-up</SelectItem>
-            <SelectItem value="thankyou">Thank you</SelectItem>
+              {templates.map((tpl) => (
+            <SelectItem key={tpl.id} value={tpl.id}>
+              {tpl.template_name}
+            </SelectItem>
+          ))}
           </SelectContent>
         </Select>
 

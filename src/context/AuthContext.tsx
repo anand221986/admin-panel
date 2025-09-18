@@ -2,8 +2,10 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { API_BASE_URL } from "../config/api";
+import { decode } from "punycode";
 
 type UserDetails = {
+  id:number;
   name: string;
   email: string;
   roles: string[];
@@ -58,11 +60,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       });
-      const { accessToken, idToken, refreshToken } = response.data;
+      const { accessToken, idToken, refreshToken,agency_id } = response.data;
 
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("idToken", idToken);
       localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("agency_id", agency_id);
+      
       const token = localStorage.getItem("idToken");
       if (token) {
         const decoded: DecodedToken = jwtDecode(token);
@@ -97,6 +101,7 @@ const getUserDetails = (): UserDetails | null => {
   try {
     const decoded: any = jwtDecode(token);
     return {
+      id:decoded.id,
       name: decoded.name,
       email: decoded.email,
       roles: decoded["cognito:groups"] || [],

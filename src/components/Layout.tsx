@@ -37,49 +37,55 @@ const menuItems = [
     title: "Dashboard",
     url: "/",
     icon: Home,
-    roles: ["admin", "Interviewer", "Recruiter"],
+    roles: ["SuperAdmin","admin", "Interviewer", "Recruiter"],
   },
   {
     title: "Jobs",
     url: "/jobs",
     icon: Briefcase,
-    roles: ["admin", "Recruiter"],
+    roles: ["SuperAdmin","admin", "Recruiter","Vendor"],
   },
   {
     title: "Candidates",
     url: "/candidates",
     icon: Users,
-    roles: ["admin", "Recruiter"],
+    roles: ["admin", "Recruiter","SuperAdmin","Vendor"],
   },
   {
     title: "Clients",
     url: "/clients",
     icon: Building2,
-    roles: ["admin", "Recruiter"],
+    roles: ["admin", "Recruiter","SuperAdmin","Vendor"],
   },
   {
     title: "Interviews",
     url: "/interviews",
     icon: Calendar,
-    roles: ["Interviewer", "admin"],
+    roles: ["Interviewer", "admin","SuperAdmin"],
   },
   {
     title: "Users",
     url: "/users",
     icon: BarChart3,
-    roles: ["admin", "Recruiter"],
+    roles: ["admin", "Recruiter","SuperAdmin"],
   },
   {
     title: "Analytics",
     url: "/analytics",
     icon: BarChart3,
-    roles: ["Recruiter", "admin"],
+    roles: ["Recruiter", "admin","SuperAdmin"],
   },
   {
     title: "Settings",
     url: "/settings",
     icon: Settings,
-    roles: ["admin", "Interviewer"],
+    roles: ["admin", "Interviewer","SuperAdmin"],
+  },
+   {
+    title: "Agencies",
+    url: "/agenncies",
+    icon: Settings,
+    roles: ["SuperAdmin"],
   },
 ];
 
@@ -87,7 +93,7 @@ function AppSidebar() {
   const location = useLocation();
   const { getUserRoles, getUserDetails} = useAuth();
   const userRoles = getUserRoles();
-  console.log(userRoles, "userRoles");
+  console.log(userRoles,getUserDetails, "userRoles");
 
   const filteredMenuItems = menuItems.filter((item) =>
     item.roles.some((role) =>
@@ -145,15 +151,13 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { logout ,getUserDetails} = useAuth();
-  
   const navigate = useNavigate();
   const userDetails = getUserDetails();
- 
-  console.log( userDetails?.name,'userDetails')
+  const name = userDetails?.name || "Guest User";
+  const encodedName = encodeURIComponent(name);
   const [user] = useState({
-    name: userDetails?.name || "Guest User",
-    avatarUrl:
-      "https://ui-avatars.com/api/?name=John+Doe&background=4f46e5&color=fff",
+    name: name,
+     avatarUrl: `https://ui-avatars.com/api/?name=${encodedName}&background=4f46e5&color=fff`,
   });
 
   const handleLogout = () => {
@@ -161,7 +165,6 @@ export default function Layout({ children }: LayoutProps) {
     navigate("/login");
     console.log("Logging out...");
   };
-
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50/30 overflow-x-hidden">
@@ -183,7 +186,7 @@ export default function Layout({ children }: LayoutProps) {
                         className="w-8 h-8 rounded-full"
                       />
                       <span className="text-sm font-medium text-slate-700 hidden sm:inline">
-                        Anand Gupta
+                        {userDetails.name}
                       </span>
                     </Button>
                   </DropdownMenuTrigger>

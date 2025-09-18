@@ -167,8 +167,9 @@ const Clients = () => {
   const fetchClients = async () => {
     try {
       setLoading(true);
+      const agencyId = localStorage.getItem('agency_id');
       // Use the getAllClient endpoint to fetch all clients
-      const response = await axios.get(`${API_BASE_URL}/client/getAllClient`);
+      const response = await axios.get(`${API_BASE_URL}/client/getAllClient?agency_id=${agencyId}`);
       if (response.data.status && Array.isArray(response.data.result)) {
         // Map the backend fields to frontend expectations
         const mappedClients = response.data.result.map((client: BackendClient) => ({
@@ -262,13 +263,15 @@ const Clients = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helper functions
-  const generateLogo = (name: string) => {
-    const words = name.split(' ');
-    if (words.length >= 2) {
-      return words[0][0] + words[1][0];
-    }
-    return name.slice(0, 2);
-  };
+const generateLogo = (name?: string) => {
+  if (!name) return "NA"; // fallback initials
+  return name
+    .split(" ")
+    .map(word => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";

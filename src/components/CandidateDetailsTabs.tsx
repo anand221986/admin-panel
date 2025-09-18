@@ -163,7 +163,11 @@ export default function CandidateDetailsTabs({
               </TabsContent>
               <TabsContent value="tasks">
                 <TasksPanel
-                  candidateId={candidate.id}
+                   candidate={{
+                          candidateId: candidate.id,
+                          candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                        }}
+              
                   authorId={1}
                   refreshTrigger={handleAdded}
                 />
@@ -263,7 +267,10 @@ export default function CandidateDetailsTabs({
                     </TabsContent>
                     <TabsContent value="tasks">
                       <TasksPanel
-                        candidateId={candidate.id}
+                          candidate={{
+                          candidateId: candidate.id,
+                          candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                        }}
                         authorId={1}
                         onTaskAdded={handleAdded}
                       />
@@ -355,7 +362,7 @@ export default function CandidateDetailsTabs({
                       <ScorecardsPanel scorecards={candidate.scorecards} />
                     </TabsContent>
                     <TabsContent value="conversations">
-                      <ConversationsPanel conversations={candidate.conversations} />
+                      <ConversationsPanel candidateId={candidate.id} conversations={candidate.conversations} />
                     </TabsContent>
                     <TabsContent value="calls_list">
                       <CallsListPanel
@@ -421,7 +428,10 @@ export default function CandidateDetailsTabs({
                   </TabsContent>
                   <TabsContent value="tasks">
                     <TasksPanel
-                      candidateId={candidate.id}
+                      candidate={{
+                        candidateId: candidate.id,
+                        candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                      }}
                       authorId={1}
                       onTaskAdded={handleAdded}
                     />
@@ -513,7 +523,7 @@ export default function CandidateDetailsTabs({
                     <ScorecardsPanel scorecards={candidate.scorecards} />
                   </TabsContent>
                   <TabsContent value="conversations">
-                    <ConversationsPanel conversations={candidate.conversations} />
+                    <ConversationsPanel candidateId={candidate.id} conversations={candidate.conversations} />
                   </TabsContent>
                   <TabsContent value="calls_list">
                     <CallsListPanel
