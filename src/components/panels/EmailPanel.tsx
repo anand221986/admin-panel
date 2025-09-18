@@ -46,7 +46,6 @@ export function EmailPanel({ candidate }: EmailPanelProps) {
     const [templates, setTemplates] = useState<{ id: string; template_name: string,subject:string,body:string }[]>([])
     const { getUserRoles, getUserDetails} = useAuth();
     const userDetails= getUserDetails();
-    
    const handleSave = async () => {
     if (!emailSubject.trim()) {
       toast.error("Please enter email subject line.");

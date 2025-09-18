@@ -434,9 +434,12 @@ export default function PagesViewList({
                           />
                         </TableCell>
                         {visibleColumns.includes("name") && (
-                          
                           <TableCell className="min-w-[200px] py-2">
-                            <UserActionsPopover candidateId={candidate.id}>
+                            <UserActionsPopover
+                              candidateId={candidate.id}
+                              candidate={candidate}
+                              fetchCandidates={fetchCandidates}
+                            >
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                   <AvatarFallback>
