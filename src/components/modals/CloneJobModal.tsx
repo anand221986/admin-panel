@@ -23,16 +23,8 @@ import {
 import {
   currencyOptions,
   API_BASE_URL,
-  TEMPLATE_HEADERS,
-  JobsForm,
-  initialForm,
-  educationLevels,
-  employmentTypes,
-  industries,
-  jobFunctions,
 } from "@/components/constants/jobConstants";
-import { Form } from "react-hook-form";
-import { DialogClose } from "@radix-ui/react-dialog";
+
 type CloneJobModalProps = {
   open: boolean;
   onOpenChange: (val: boolean) => void;
@@ -73,6 +65,7 @@ interface JobForm {
   };
   company: string;
   about_company: string;
+  agency_id:number;
 }
 
 export default function CloneJobModal({
@@ -107,15 +100,15 @@ export default function CloneJobModal({
     employmentDetails: { experienceFrom: 0, experienceTo: 0 },
     company: "",
     about_company: "",
+    agency_id:0
   };
 
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
-
   const [form, setForm] = useState<JobForm>({ ...initialFormState });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [status, setStatus] = useState("Draft");
-
+const agencyId = localStorage.getItem('agency_id');
+  // fetch job data when opening
   useEffect(() => {
     if (open && jobId) {
       setLoading(true);
@@ -161,6 +154,7 @@ export default function CloneJobModal({
             },
             company: job.company,
             about_company: job.about_company,
+            agency_id:Number(agencyId)
           });
         })
         .catch((err) => {
@@ -181,9 +175,7 @@ export default function CloneJobModal({
   const validateForm = (): string | null => {
     const newErrors: Record<string, string> = {};
     if (!form.job_title.trim()) newErrors.job_title = "Job title is required.";
-    // if (!form.job_code.trim()) newErrors.job_code = "Job code is required.";
-    if (!form.department.trim())
-      newErrors.department = "Department is required.";
+    if (!form.department.trim()) newErrors.department = "Department is required.";
     if (!form.workplace.trim()) newErrors.workplace = "Workplace is required.";
     if (!form.office_primary_location.trim())
       newErrors.office_primary_location = "Primary location is required.";
@@ -194,8 +186,8 @@ export default function CloneJobModal({
     if (!form.company_job_function.trim())
       newErrors.company_job_function = "Job function is required.";
 
-    const from = Number(form.salary_from);
-    const to = Number(form.salary_to);
+    const from = Number(form.salary.from);
+    const to = Number(form.salary.to);
 
     if (isNaN(from) || from < 0)
       newErrors.salary_from = "Salary from must be a non-negative number.";
@@ -208,8 +200,7 @@ export default function CloneJobModal({
       newErrors.salary_currency = "Currency is required.";
 
     setErrors(newErrors);
-    const firstErrorKey = Object.keys(newErrors)[0] ?? null;
-    return firstErrorKey;
+    return Object.keys(newErrors)[0] ?? null;
   };
 
   const handleChange = (
@@ -218,6 +209,7 @@ export default function CloneJobModal({
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleNestedChange = (section: string, field: string, value: any) => {
     setForm((prev) => ({
       ...prev,
@@ -261,9 +253,7 @@ export default function CloneJobModal({
       const loc = target.value.trim();
       setForm((prev) => ({
         ...prev,
-        office_location_additional: prev.office_location_additional.includes(
-          loc
-        )
+        office_location_additional: prev.office_location_additional.includes(loc)
           ? prev.office_location_additional
           : [...prev.office_location_additional, loc],
       }));
@@ -286,7 +276,7 @@ export default function CloneJobModal({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const firstError = validateForm();
+  const firstError = validateForm();
     if (firstError) {
       toast.error("Please enter required fields.");
       const el = fieldRefs.current[firstError];
@@ -294,9 +284,9 @@ export default function CloneJobModal({
       el?.focus();
       return;
     }
+
     setLoading(true);
 
-    //define new payload
     const payload = {
       job_title: form.job_title,
       job_code: form.job_code,
@@ -323,6 +313,7 @@ export default function CloneJobModal({
       experienceTo: form.employmentDetails.experienceTo,
       company: form.company,
       about_company: form.about_company,
+      agency_id:agencyId
     };
 
     try {
@@ -343,443 +334,135 @@ export default function CloneJobModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[80vw] min-h-[80vh] rounded-2xl p-0 overflow-hidden">
-        <div className="max-h-[75vh] overflow-y-auto p-6 space-y-6">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold">
-              Clone Job
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Job Title
-                </label>
-                <Input
-                  name="job_title"
-                  placeholder="Job Title"
-                  value={form.job_title}
-                  onChange={handleChange}
-                  ref={(el) => (fieldRefs.current.job_title = el)}
-                />
-                {errors.job_title && (
-                  <p className="text-red-500 text-xs">{errors.job_title}</p>
-                )}
-              </div>
-              {/* <div>
-                <label className="block text-sm font-medium mb-1">
-                  Job Code
-                </label>
-                <Input
-                  name="job_code"
-                  placeholder="Job Code"
-                  value={form.job_code}
-                  onChange={handleChange}
-                  ref={(el) => (fieldRefs.current.job_code = el)}
-                />
-                {errors.job_code && (
-                  <p className="text-red-500 text-xs">{errors.job_code}</p>
-                )}
-              </div> */}
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Department
-                </label>
-                <Input
-                  name="department"
-                  placeholder="Department"
-                  value={form.department}
-                  onChange={handleChange}
-                  ref={(el) => (fieldRefs.current.department = el)}
-                />
-                {errors.department && (
-                  <p className="text-red-500 text-xs">{errors.department}</p>
-                )}
-              </div>
-              <div>
-                <label>Workplace*</label>
-                <Select
-                  value={form.workplace}
-                  onValueChange={(val) => handleSelectChange("workplace", val)}
-                >
-                  <SelectTrigger
-                    ref={(el) => (fieldRefs.current.workplace = el)}
-                  >
-                    <SelectValue placeholder="Select workplace" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Onsite">Onsite</SelectItem>
-                    <SelectItem value="Remote">Remote</SelectItem>
-                    <SelectItem value="Hybrid">Hybrid</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.workplace && (
-                  <p className="text-red-500 text-sm">{errors.workplace}</p>
-                )}
-              </div>
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+          <div className="flex-1 max-h-[75vh] overflow-y-auto p-6 space-y-6">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-semibold">
+                Clone Job
+              </DialogTitle>
+            </DialogHeader>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Status
-                  </label>
-                  <Select
-                    value={form.status}
-                    onValueChange={(val) => handleSelectChange("status", val)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Draft">Draft</SelectItem>
-                      <SelectItem value="Published">Published</SelectItem>
-                      <SelectItem value="Closed">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Priority
-                  </label>
-                  <Select
-                    value={form.priority}
-                    onValueChange={(val) => handleSelectChange("priority", val)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Low">Low</SelectItem>
-                      <SelectItem value="Medium">Medium</SelectItem>
-                      <SelectItem value="High">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Office Location
-                </label>
-                <Input
-                  name="office_primary_location"
-                  placeholder="Primary Office Location"
-                  value={form.office_primary_location}
-                  onChange={handleChange}
-                  ref={(el) => (fieldRefs.current.office_primary_location = el)}
-                />
-                {errors.office_primary_location && (
-                  <p className="text-red-500 text-xs">
-                    {errors.office_primary_location}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                checked={form.office_on_careers_page}
-                onCheckedChange={handleCheckboxChange}
+            {/* Job Title */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Job Title</label>
+              <Input
+                name="job_title"
+                placeholder="Job Title"
+                value={form.job_title}
+                onChange={handleChange}
+                ref={(el) => (fieldRefs.current.job_title = el)}
               />
-              <label className="text-sm font-medium">
-                Show office on careers page
-              </label>
+              {errors.job_title && (
+                <p className="text-red-500 text-xs">{errors.job_title}</p>
+              )}
             </div>
+
+            {/* Department */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Department</label>
+              <Input
+                name="department"
+                placeholder="Department"
+                value={form.department}
+                onChange={handleChange}
+                ref={(el) => (fieldRefs.current.department = el)}
+              />
+              {errors.department && (
+                <p className="text-red-500 text-xs">{errors.department}</p>
+              )}
+            </div>
+
+            {/* Workplace */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Workplace</label>
+              <Input
+                name="workplace"
+                placeholder="Workplace"
+                value={form.workplace}
+                onChange={handleChange}
+                ref={(el) => (fieldRefs.current.workplace = el)}
+              />
+              {errors.workplace && (
+                <p className="text-red-500 text-xs">{errors.workplace}</p>
+              )}
+            </div>
+
+            {/* Primary Location */}
             <div>
               <label className="block text-sm font-medium mb-1">
-                Additional Office Locations
+                Primary Location
               </label>
               <Input
-                onKeyDown={handleLocationAdd}
-                placeholder="Add location and press Enter"
+                name="office_primary_location"
+                placeholder="Primary Location"
+                value={form.office_primary_location}
+                onChange={handleChange}
+                ref={(el) => (fieldRefs.current.office_primary_location = el)}
               />
-              <div className="flex flex-wrap gap-2 mt-2">
-                {form.office_location_additional.map((loc, idx) => (
-                  <Badge
-                    key={idx}
-                    className="flex items-center gap-1 px-2 py-1 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    {loc}
-                    <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => removeLocation(loc)}
-                    />
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <div className="grid gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Job Description
-                </label>
-                <Textarea
-                  name="description_about"
-                  placeholder="About the Job"
-                  value={form.description_about}
-                  onChange={handleChange}
-                  ref={(el) => (fieldRefs.current.description_about = el)}
-                />
-                {errors.description_about && (
-                  <p className="text-red-500 text-xs">
-                    {errors.description_about}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Job Requirements
-                </label>
-                <Textarea
-                  name="description_requirements"
-                  placeholder="Requirements"
-                  value={form.description_requirements}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Benefits
-                </label>
-                <Textarea
-                  name="description_benefits"
-                  placeholder="Benefits"
-                  value={form.description_benefits}
-                  onChange={handleChange}
-                />
-              </div>
+              {errors.office_primary_location && (
+                <p className="text-red-500 text-xs">
+                  {errors.office_primary_location}
+                </p>
+              )}
             </div>
 
-            {/* Industry, Job Function, etc. ... unchanged */}
-
-            <div className="md:col-span-2 mt-4 mb-2">
-              <h3 className="text-xl font-semibold">Company Details</h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Industry
-                </label>
-                <Input
-                  name="company_industry"
-                  placeholder="Industry"
-                  value={form.company_industry}
-                  onChange={handleChange}
-                  ref={(el) => (fieldRefs.current.company_industry = el)}
-                />
-                {errors.company_industry && (
-                  <p className="text-red-500 text-xs">
-                    {errors.company_industry}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Job Function
-                </label>
-                <Input
-                  name="company_job_function"
-                  placeholder="Job Function"
-                  value={form.company_job_function}
-                  onChange={handleChange}
-                  ref={(el) => (fieldRefs.current.company_job_function = el)}
-                />
-                {errors.company_job_function && (
-                  <p className="text-red-500 text-xs">
-                    {errors.company_job_function}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* <div>
-                <label className="block text-sm font-medium mb-1">
-                  Salary From
-                </label>
-                <Input
-                  name="salary_from"
-                  placeholder="Salary From"
-                  value={form.salary_from}
-                  onChange={handleChange}
-                  ref={(el) => (fieldRefs.current.salary_from = el)}
-                />
-                {errors.salary_from && (
-                  <p className="text-red-500 text-xs">{errors.salary_from}</p>
-                )}
-              </div> */}
-              <div>
-                <label className="text-sm">Experience *</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Input
-                    type="number"
-                    placeholder="From"
-                    value={form.employmentDetails.experienceFrom}
-                    onChange={(e) =>
-                      handleNestedChange(
-                        "employmentDetails",
-                        "experienceFrom",
-                        e.target.value
-                      )
-                    }
-                    className="w-24"
-                  />
-                  <span>to</span>
-                  <Input
-                    type="number"
-                    placeholder="To"
-                    value={form.employmentDetails.experienceTo}
-                    onChange={(e) =>
-                      handleNestedChange(
-                        "employmentDetails",
-                        "experienceTo",
-                        e.target.value
-                      )
-                    }
-                    className="w-24"
-                  />
-                  <span>Years</span>
-                </div>
-
-                {(errors.experienceFrom || errors.experienceTo) && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.experienceFrom}
-                    <br /> {errors.experienceTo}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Currency
-                </label>
-                <Input
-                  name="salary_currency"
-                  placeholder="Currency"
-                  value={form.salary_currency}
-                  onChange={handleChange}
-                  ref={(el) => (fieldRefs.current.salary_currency = el)}
-                />
-                {errors.salary_currency && (
-                  <p className="text-red-500 text-xs">
-                    {errors.salary_currency}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mt-10 mb-2">
-              <div className="md:col-span-2 mb-4">
-                <h3 className="text-xl font-semibold">Salary Information</h3>
-              </div>
-
-              {/* Salary */}
-              <div>
-                <label className="text-sm">Annual Salary</label>
-                <div
-                  style={{ display: "flex", gap: "8px", alignItems: "center" }}
-                >
-                  <Select
-                    value={form.salary.currency}
-                    onValueChange={(value) =>
-                      handleNestedChange("salary", "currency", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Currency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {currencyOptions.map((currency) => (
-                        <SelectItem key={currency} value={currency}>
-                          {currency}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {/* FROM */}
-                  <input
-                    type="number"
-                    placeholder="Min salary"
-                    value={form.salary.from}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      handleNestedChange(
-                        "salary",
-                        "from",
-                        val === "" ? "" : Number(val)
-                      );
-                    }}
-                  />
-                  <span>To</span>
-                  {/* TO */}
-                  <input
-                    type="number"
-                    placeholder="Max salary"
-                    value={form.salary.to}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      handleNestedChange(
-                        "salary",
-                        "to",
-                        val === "" ? "" : Number(val)
-                      );
-                    }}
-                  />{" "}
-                  lacs
-                </div>
-                {errors.salaryRange && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.salaryRange}
-                  </p>
-                )}
-              </div>
-
-              {/* <div>
-    <label className="text-sm">Salary From</label>
-    <Input
-      name="salary_from"
-      placeholder="Minimum salary"
-      value={form.salary_from}
-      onChange={handleChange}
-      type="number"
-    />
-  </div>
-  <div>
-    <label className="text-sm">Salary To</label>
-    <Input
-      name="salary_to"
-      placeholder="Maximum salary"
-      value={form.salary_to}
-      onChange={handleChange}
-      type="number"
-    />
-  </div> */}
-            </div>
-
-            <div className="mt-5 md:mt-5">
-              <label className="text-sm">Keywords (Press Enter to add)</label>
+            {/* Salary */}
+            <div className="grid grid-cols-3 gap-3">
               <Input
-                onKeyDown={handleKeywordAdd}
-                placeholder="Add keyword and press Enter"
+                type="number"
+                placeholder="From"
+                value={form.salary.from}
+                onChange={(e) =>
+                  handleNestedChange("salary", "from", Number(e.target.value))
+                }
+                ref={(el) => (fieldRefs.current.salary_from = el)}
               />
-              <div className="flex flex-wrap gap-2 mt-2">
-                {form.keywords.map((kw, idx) => (
-                  <Badge
-                    key={idx}
-                    className="flex items-center gap-1 px-2 py-1 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    {kw}
-                    <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => removeKeyword(kw)}
-                    />
-                  </Badge>
-                ))}
-              </div>
+              <Input
+                type="number"
+                placeholder="To"
+                value={form.salary.to}
+                onChange={(e) =>
+                  handleNestedChange("salary", "to", Number(e.target.value))
+                }
+                ref={(el) => (fieldRefs.current.salary_to = el)}
+              />
+              <Select
+                value={form.salary_currency}
+                onValueChange={(val) => handleSelectChange("salary_currency", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencyOptions.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </form>
-        </div>
+            {errors.salary_range && (
+              <p className="text-red-500 text-xs">{errors.salary_range}</p>
+            )}
 
-        <div className="p-6 pt-4 flex justify-end gap-3 border-t bg-gray-50 sticky bottom-0">
-          <DialogClose asChild>
+            {/* About Job */}
+            <div>
+              <label className="block text-sm font-medium mb-1">About Job</label>
+              <Textarea
+                name="description_about"
+                value={form.description_about}
+                onChange={handleChange}
+                ref={(el) => (fieldRefs.current.description_about = el)}
+              />
+              {errors.description_about && (
+                <p className="text-red-500 text-xs">{errors.description_about}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Footer with submit */}
+          <div className="p-6 pt-4 flex justify-end gap-3 border-t bg-gray-50 sticky bottom-0">
             <Button
               type="submit"
               disabled={loading}
@@ -787,8 +470,8 @@ export default function CloneJobModal({
             >
               {loading ? "Posting..." : "Post Job"}
             </Button>
-          </DialogClose>
-        </div>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

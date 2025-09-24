@@ -78,24 +78,25 @@ interface CandidateForm {
 }
 const API_BASE_URL = "http://16.171.117.2:3000";
 const CMSSettingsTabs = () => {
-    const [candidates, setCandidates] = useState<CandidateForm[]>([]);
       const [loading, setLoading] = useState(true);
-        useEffect(() => {
-    fetchCandidates();
-  }, []);
-   const fetchCandidates = async () => {
+      const [pages, setPages] = useState<any[]>([])
+   const fetchPages = async () => {
     setLoading(true);
     try {
       const { data } = await axios.get(
         `${API_BASE_URL}/pages/getAllPages`
       );
-      setCandidates(data.result);
+ 
+    setPages(data);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+          useEffect(() => {
+    fetchPages();
+  }, []);
   return (
       <Tabs defaultValue="pages" className="space-y-6">
           <TabsList className="grid w-full grid-cols-9 bg-white/60 backdrop-blur-sm">
@@ -192,9 +193,11 @@ const CMSSettingsTabs = () => {
             </Card>
           </TabsContent>
        <TabsContent value="pages">
-            <PagesViewList  loading={loading}
-    candidates={candidates}
-    fetchCandidates={fetchCandidates} />
+          <PagesViewList
+    loading={loading}
+    fetchPages={fetchPages}
+    pages={pages}   // ✅ renamed
+  />
           </TabsContent>
         </Tabs>
   );

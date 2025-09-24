@@ -87,6 +87,24 @@ const menuItems = [
     icon: Settings,
     roles: ["SuperAdmin"],
   },
+  {
+    title: "CMS",
+    url: "/cms",
+    icon: Settings,
+    roles: ["SuperAdmin"],
+  },
+   {
+    title: "Testimonial",
+    url: "/testimonial",
+    icon: Settings,
+    roles: ["SuperAdmin"],
+  },
+   {
+    title: "Blogs",
+    url: "/blogs",
+    icon: Settings,
+    roles: ["SuperAdmin"],
+  },
 ];
 
 function AppSidebar() {

@@ -48,6 +48,7 @@ export default function Signup() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          role:'Recruiter'
         },
         {
           headers: { "Content-Type": "application/json" },

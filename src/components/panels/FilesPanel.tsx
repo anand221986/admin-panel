@@ -86,12 +86,22 @@ export function FilesPanel({ candidateId, onResumePreview }: FilesPanelProps) {
     }
   };
 
+  // const handlePreview = (resume: ResumeFile) => {
+  //   const fileUrl = `${FILE_SERVER_URL}/ats-api/uploads/${resume.resume_url}`;
+  //   if (onResumePreview) {
+  //     onResumePreview(resume, fileUrl);
+  //   }
+  // };
   const handlePreview = (resume: ResumeFile) => {
-    const fileUrl = `${FILE_SERVER_URL}/ats-api/uploads/${resume.resume_url}`;
-    if (onResumePreview) {
-      onResumePreview(resume, fileUrl);
-    }
-  };
+  const fileUrl = `${FILE_SERVER_URL}/ats-api/uploads/${resume.resume_url}`;
+  const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+
+  if (onResumePreview) {
+    onResumePreview(resume, googleViewerUrl);
+  } else {
+    window.open(googleViewerUrl, "_blank");
+  }
+};
 
   return (
     <div className="h-[600px] px-4">

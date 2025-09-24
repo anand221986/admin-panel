@@ -1,12 +1,10 @@
 import Layout from "@/components/Layout";
 import TemplatesManager from "@/components/panels/TemplatesSection";
 import IntegrationPage from "@/components/panels/IntegrationPage";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Plus,
+} from "lucide-react";
 import CMSSettingsTabs from "@/pages/CmsDashboardTabs";
 import {
   Select,
@@ -31,8 +29,10 @@ import {
 } from "lucide-react";
 import { StatusSettingsTab } from "@/components/StatusSettingsTab";
 import { RolePermissionsTab } from "@/components/RolePermissionsTab";
-
+import { useEffect, useState, useMemo } from "react";
+import PostNewPagesModal from "@/components/modals/PostNewPagesModal";
 const CMS = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <Layout>
       <div className="space-y-6">
@@ -49,6 +49,13 @@ const CMS = () => {
       </div>
     </Layout>
   );
+    <PostNewPagesModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => {
+            setIsModalOpen(false);
+          }}
+        />
 };
 
 export default CMS;

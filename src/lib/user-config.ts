@@ -47,6 +47,15 @@ const hmApprovalMap: StatusColorMap = {
   Rejected: "bg-red-100 text-red-800 hover:bg-red-200 hover:text-red-900",
   "Not Required": "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700",
 };
+export const ALL_PAGES_COLUMNS: ColumnConfig[] = [
+  { key: "name", label: "Page Title" },
+  { key: "email", label: "Slug / URL" },
+  { key: "phone", label: "Meta Title" },
+  { key: "status", label: "Status" },
+  { key: "role", label: "Created At" },
+  { key: "created_at", label: "Updated At" },
+  { key: "actions", label: "Actions" },
+];
 
 export const getStatusColor = getBadgeClasses(statusMap, "bg-gray-100 text-gray-800 hover:bg-gray-200 hover:text-gray-900");
 export const getRecruiterStatusColor = getBadgeClasses(recruiterStatusMap, "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-800");

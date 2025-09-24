@@ -19,6 +19,8 @@ const Users = lazy(() => import("./pages/Users"));
 const Agenncies = lazy(() => import("./pages/Agencies"));
 const AgenciesDashboard = lazy(() => import("./pages/AgenciesDashboard"));
 const Cms = lazy(() => import("./pages/Cms"));
+const Testimonial= lazy(() => import("./pages/Testimonial"));
+const Blog = lazy(() => import("./pages/Blog"));
  
 
 
@@ -134,6 +136,22 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Cms />
+                  </ProtectedRoute>
+                }
+              />
+               <Route
+                path="/testimonial"
+                element={
+                  <ProtectedRoute>
+                    <Testimonial />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/blogs"
+                element={
+                  <ProtectedRoute>
+                    <Blog />
                   </ProtectedRoute>
                 }
               />

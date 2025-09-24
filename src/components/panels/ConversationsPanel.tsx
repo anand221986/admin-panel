@@ -58,40 +58,29 @@ const sampleConversations: ConversationItem[] = [
   },
 ];
 
-export function ConversationsPanel({ conversations }: ConversationsPanelProps) {
-    const { getUserRoles, getUserDetails} = useAuth();
+export function ConversationsPanel({ conversations,candidateId }: ConversationsPanelProps) {
+    const {getUserDetails} = useAuth();
        const userDetails= getUserDetails();
-       const recruiterId=userDetails.id;
+       const recruiterId=userDetails.recruiter_Id;
   const [fetchedConversations, setFetchedConversations] = useState<ConversationItem[]>([]);
   const { toast } = useToast(); // ✅ Destructure toast
-
   const handleSync = async () => {
-    try {
-      const res = await fetch(`{http://16.171.117.2:3000/candidate/sync/${recruiterId}`, {
-        method: "POST",
-      });
-      if (!res.ok) {
-        throw new Error(`API error: ${res.status}`);
-      }
-      toast({
-        title: "Sync Scheduled",
-        description:
-          "A sync has been scheduled. You will receive an email once the sync is complete.",
-      });
-    } catch (error) {
-      console.error("Sync failed:", error);
-      toast({
-        variant: "destructive",
-        title: "Sync Failed",
-        description:
-          "There was a problem scheduling the sync. Please try again later.",
-      });
-    }
-    
-  };
+  try {
+    // navigate to backend — browser will handle Google redirect if needed
+    window.location.href = `http://16.171.117.2:3000/candidate/sync/${recruiterId}`;
+  } catch (error) {
+    console.error("Sync failed:", error);
+    toast({
+      variant: "destructive",
+      title: "Sync Failed",
+      description: "There was a problem scheduling the sync. Please try again later.",
+    });
+  }
+};
+
 
   useEffect(() => {
-    fetch("http://16.171.117.2:3000/candidate/conversation/166")
+    fetch(`http://16.171.117.2:3000/candidate/conversation/${candidateId}`)
       .then((res) => res.json())
       .then((data) => {
         const formatted: ConversationItem[] = data.result.map((item: any, index: number) => ({

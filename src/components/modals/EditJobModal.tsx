@@ -52,7 +52,6 @@ export default function EditJobModal({
     company_industry: "",
     company_job_function: "",
     employment_type: "",
-    experience: "",
     education: "",
     keywords: [],
     salary_from: "",
@@ -60,8 +59,8 @@ export default function EditJobModal({
     salary_currency: "USD",
     company: "",
     about_company: "",
-    salary: { from: 0, to: 0, currency: "INR" },
-   employmentDetails:{experienceFrom:0,experienceTo:0},
+   experience_from:"",
+   experience_to:""
   };
 
   const [form, setForm] = useState({ ...initialFormState });
@@ -97,24 +96,16 @@ export default function EditJobModal({
   company_industry: job.company_industry || "",
   company_job_function: job.company_job_function || "",
   employment_type: job.employment_type || "",
-  experience: job.experience || "",
   education: job.education || "",
   keywords: job.keywords || [],
   salary_from: job.salary_from || "",
   salary_to: job.salary_to || "",
   salary_currency: job.salary_currency || "USD",
+  experience_from:job.experience_from || "",
+  experience_to:job.experience_to || "",
   company: job.company || "",
   about_company: job.about_company || "",
-  // 👇 Make sure nested objects are always present
-  salary: {
-    from: job.salary_from || 0,
-    to: job.salary_to || 0,
-    currency: job.salary_currency || "INR",
-  },
-  employmentDetails: {
-    experienceFrom: job.experience_from || 0,
-    experienceTo: job.experience_to || 0,
-  },
+
 });
         })
         .catch((err) => {
@@ -390,7 +381,7 @@ export default function EditJobModal({
                                     <Input
                                       type="number"
                                       placeholder="From"
-                                      value={form.employmentDetails.experienceFrom}
+                                      value={form.experience_from}
                                       onChange={(e) =>
                                         handleNestedChange(
                                           "employmentDetails",
@@ -404,7 +395,7 @@ export default function EditJobModal({
                                     <Input
                                       type="number"
                                       placeholder="To"
-                                      value={form.employmentDetails.experienceTo}
+                                      value={form.experience_to}
                                       onChange={(e) =>
                                         handleNestedChange(
                                           "employmentDetails",
@@ -472,7 +463,7 @@ export default function EditJobModal({
                        <label className="text-sm">Annual Salary</label>
                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                          <Select
-                           value={form.salary.currency}
+                           value={form.salary_currency}
                            onValueChange={(value) =>
                              handleNestedChange("salary", "currency", value)
                            }
@@ -493,7 +484,7 @@ export default function EditJobModal({
                          <input
                            type="number"
                            placeholder="Min salary"
-                           value={form.salary.from}
+                           value={form.salary_from}
                             onChange={(e) => {
        const val = e.target.value;
        handleNestedChange("salary", "from", val === "" ? "" : Number(val));
@@ -505,7 +496,7 @@ export default function EditJobModal({
                          <input
                            type="number"
                            placeholder="Max salary"
-                           value={form.salary.to}
+                           value={form.salary_to}
                              onChange={(e) => {
        const val = e.target.value;
        handleNestedChange("salary", "to", val === "" ? "" : Number(val));

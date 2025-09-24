@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, Pencil, Trash2, Plus } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
+import { Link } from 'react-router-dom';
 
 const API_BASE_URL = "http://16.171.117.2:3000";
 
@@ -13,7 +14,6 @@ interface Agency {
   name: string;
   created_at: string;
 }
-
 export default function Agencies() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,14 +61,21 @@ export default function Agencies() {
   const handleAdd = async () => {
     const name = prompt("Enter new agency name:");
     if (!name || name.trim() === "") return;
-
+// Optimistically add to state first
+  const tempAgency: Agency = {
+    id: Date.now(), // temporary ID until backend returns real one
+    name,
+    created_at: new Date().toISOString(),
+  };
+  setAgencies((prev) => [...prev, tempAgency]);
     try {
-      await axios.post(`${API_BASE_URL}/agency`, { name });
+      await axios.post(`${API_BASE_URL}/agency/addagency`, { name });
       toast.success("Agency added successfully.");
-      fetchAgencies();
     } catch (err) {
       console.error(err);
       toast.error("Failed to add agency.");
+       // Rollback optimistic update if API fails
+    setAgencies((prev) => prev.filter((a) => a.id !== tempAgency.id));
     }
   };
 
@@ -80,7 +87,7 @@ export default function Agencies() {
     <Layout>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-slate-800">Agencies</h1>
+          <h1 className="text-2xl font-bold text-slate-800">Agencies Dashboard</h1>
           <Button onClick={handleAdd} className="bg-blue-600 hover:bg-blue-700 text-white">
             <Plus className="mr-2 h-4 w-4" /> Add Agency
           </Button>
@@ -95,7 +102,9 @@ export default function Agencies() {
               <CardContent className="p-4 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-600">Agency</p>
-                  <p className="text-lg font-semibold text-slate-800">{agency.name}</p>
+                 <Link to={`/agencies/${agency.id}`}>
+  <p className="text-lg font-semibold text-slate-800">{agency.name}</p>
+</Link>
                   <p className="text-xs text-slate-500">
                     Created: {new Date(agency.created_at).toLocaleDateString()}
                   </p>

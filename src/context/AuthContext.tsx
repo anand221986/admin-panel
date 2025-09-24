@@ -5,7 +5,7 @@ import { API_BASE_URL } from "../config/api";
 import { decode } from "punycode";
 
 type UserDetails = {
-  id:number;
+  recruiter_Id:number;
   name: string;
   email: string;
   roles: string[];
@@ -60,12 +60,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       });
-      const { accessToken, idToken, refreshToken,agency_id } = response.data;
+      const { accessToken, idToken, refreshToken,agency_id,id } = response.data;
 
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("idToken", idToken);
       localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("agency_id", agency_id);
+      localStorage.setItem("recruiter_id", id);
       
       const token = localStorage.getItem("idToken");
       if (token) {
@@ -96,12 +97,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 const getUserDetails = (): UserDetails | null => {
   const token = localStorage.getItem("idToken");
+  const recruiterId = Number(localStorage.getItem("recruiter_id"));
   if (!token) return null;
 
   try {
     const decoded: any = jwtDecode(token);
+    console.log(decoded,'decoded')
     return {
-      id:decoded.id,
+      recruiter_Id:recruiterId,
       name: decoded.name,
       email: decoded.email,
       roles: decoded["cognito:groups"] || [],

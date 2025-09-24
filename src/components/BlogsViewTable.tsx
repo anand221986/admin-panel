@@ -32,7 +32,7 @@ interface PagesViewListProps {
 
 const API_BASE_URL = "http://16.171.117.2:3000";
 
-export default function PageViewTable({ loading, fetchPages, pages }: PagesViewListProps) {
+export default function BlogsViewList({ loading, fetchPages, pages }: PagesViewListProps) {
   const [localPages, setLocalPages] = useState<Page[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -77,7 +77,7 @@ export default function PageViewTable({ loading, fetchPages, pages }: PagesViewL
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`${API_BASE_URL}/pages/${id}`);
+      await axios.delete(`${API_BASE_URL}/testimonials/${id}`);
       toast.success("Page deleted successfully");
       fetchPages();
     } catch (err) {
@@ -89,7 +89,7 @@ export default function PageViewTable({ loading, fetchPages, pages }: PagesViewL
   const handleBulkDelete = async () => {
     if (!selected.size) return toast.error("No pages selected");
     try {
-      await axios.post(`${API_BASE_URL}/pages/bulk-delete`, { ids: [...selected] });
+      await axios.post(`${API_BASE_URL}/testimonials/bulk-delete`, { ids: [...selected] });
       toast.success("Selected pages deleted");
       fetchPages();
       setSelected(new Set());
@@ -104,10 +104,10 @@ export default function PageViewTable({ loading, fetchPages, pages }: PagesViewL
       {/* Header */}
       <Card className="border-0 bg-white/60 shadow-sm backdrop-blur-sm">
         <CardContent className="flex justify-between p-4">
-          <h2 className="font-semibold text-lg">Pages</h2>
+          <h2 className="font-semibold text-lg">Blogs</h2>
           <div className="flex gap-2">
             {/* <Button variant="outline" onClick={handleBulkDelete} disabled={!selected.size}>Delete Selected</Button> */}
-            <Button onClick={handleAdd}>+ Add Page</Button>
+            <Button onClick={handleAdd}>+ Add Blog</Button>
           </div>
         </CardContent>
       </Card>
@@ -121,9 +121,9 @@ export default function PageViewTable({ loading, fetchPages, pages }: PagesViewL
                 <TableRow>
                   <TableHead className="w-12"><Checkbox checked={allSelected} onCheckedChange={toggleAll} /></TableHead>
                   <TableHead>Title</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Meta Title</TableHead>
+                  <TableHead>content</TableHead>
+                  <TableHead>author</TableHead>
+                  <TableHead>Image Url</TableHead>
                   <TableHead>Created At</TableHead>
                   <TableHead>Updated At</TableHead>
                   <TableHead className="w-[140px]">Actions</TableHead>
@@ -133,7 +133,7 @@ export default function PageViewTable({ loading, fetchPages, pages }: PagesViewL
                 {loading ? (
                   <TableRow><TableCell colSpan={8} className="text-center">Loading...</TableCell></TableRow>
                 ) : paginated.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center">No pages found.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center">No Blogs found.</TableCell></TableRow>
                 ) : (
                   paginated.map(page => (
                     <TableRow key={page.id}>
